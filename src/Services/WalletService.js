@@ -35,10 +35,16 @@ export async function SendBalance(req, res){
 
     try{
         let walletTarget = await Wallet.findOne({where: {mUserId: to}});
+        let myWallet = await Wallet.findOne({where: {mUserId: token.id}});
+        
+        if(myWallet === null) return res.status(404).json({msg: 'Youre Wallet is not found', statusCode: 404});
         if(walletTarget === null) return res.status(404).json({msg: 'Wallet target is not found', statusCode: 404});
+
         walletTarget.balance += parseInt(amount);
+        myWallet.balance -+ parseInt(amount);
         let send = await WalletTransaction.create({to: to, type: 'send', amount: amount, is_paid: true, mUserId: token.id}, {t});
         await walletTarget.save();
+        await myWallet.save();
 
         t.commit();
         res.status(201).json({msg: 'Transaction success', statusCode: 201, data: send});

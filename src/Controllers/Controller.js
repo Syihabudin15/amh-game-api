@@ -1,6 +1,6 @@
 import Express from "express";
 import Upload from "../Configs/MulterConfig.js";
-import { BuyFromAdmin, BuyHero, CancelSell, CreateHero, GetAllHero, GetHeroById, SearchByLevel, SellHero, SendHero } from '../Services/HeroService.js';
+import { BuyFromAdmin, BuyHero, CancelSell, CreateHero, GetAllFilterHero, GetAllHero, GetHeroById, SearchByLevel, SellHero, SendHero } from '../Services/HeroService.js';
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
 import { GetMyWallet } from "../Services/WalletService.js";
@@ -34,12 +34,13 @@ Routers.post('/user/play/:myHeroId', JwtVerifyUser, PlayGame);
 
 // Card Router
 Routers.post('/user/card', JwtVerifyUser, CreateCard);
-Routers.get('/user/card/:userId', JwtVerifyUser, GetMyCard);
+Routers.get('/user/card', JwtVerifyUser, GetMyCard);
 
 // Hero Router
 Routers.get('/hero-detail/:id', GetHeroById);
 Routers.get('/heroes/search', SearchByLevel);
 Routers.get('/heroes', GetAllHero);
+Routers.get('/heroes/find', GetAllFilterHero);
 
 // Market Route
 Routers.post('/market', JwtVerifyUser, BuyFromAdmin);

@@ -37,11 +37,27 @@ export async function GetHeroById(req, res){
 };
 
 export async function GetAllHero(req, res){
-    let {page, perPage} = req.query;
+    let {page, size} = req.query;
     try{
+        let skip = parseInt(page) * parseInt(size);
         let result = await Hero.findAndCountAll({
-            offset: page * perPage,
-            limit: perPage
+            limit: 5,
+            offset: skip
+        });
+        res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function GetAllFilterHero(req, res){
+    let {page, size, level} = req.query;
+    try{
+        let skip = parseInt(page) * parseInt(size);
+        let result = await Hero.findAndCountAll({
+            limit: 5,
+            offset: skip,
+            where: {level: level}
         });
         res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
     }catch(err){
@@ -58,6 +74,10 @@ export async function SearchByLevel(req, res){
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
+};
+
+export async function GetAllByCriteria(req, res){
+    let {page, size, level} = req.query;
 };
 
 export async function SendHero(req, res){
