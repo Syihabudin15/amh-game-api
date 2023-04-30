@@ -1,6 +1,6 @@
 import Express from "express";
 import Upload from "../Configs/MulterConfig.js";
-import { CreateHero, GetAllHero, GetHero } from '../Services/HeroService.js';
+import { BuyFromAdmin, BuyHero, CancelSell, CreateHero, GetAllHero, GetHeroById, SearchByLevel, SellHero, SendHero } from '../Services/HeroService.js';
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
 import { GetMyWallet } from "../Services/WalletService.js";
@@ -28,6 +28,7 @@ Routers.get('/user/wallet', JwtVerifyUser, GetMyWallet);
 
 // My Hero Router
 Routers.get('/user/my-hero', JwtVerifyUser, GetMyHero);
+Routers.post('/user/my-hero/send', JwtVerifyUser, SendHero);
 Routers.get('/user/my-hero/combine', JwtVerifyUser, CombineHero);
 Routers.post('/user/play/:myHeroId', JwtVerifyUser, PlayGame);
 
@@ -36,8 +37,15 @@ Routers.post('/user/card', JwtVerifyUser, CreateCard);
 Routers.get('/user/card/:userId', JwtVerifyUser, GetMyCard);
 
 // Hero Router
-Routers.post('/hero-detail/:id', GetHero);
+Routers.get('/hero-detail/:id', GetHeroById);
+Routers.get('/heroes/search', SearchByLevel);
 Routers.get('/heroes', GetAllHero);
+
+// Market Route
+Routers.post('/market', JwtVerifyUser, BuyFromAdmin);
+Routers.post('/marketplace/sell', JwtVerifyUser, SellHero);
+Routers.post('/marketplace/buy/:marketId', JwtVerifyUser, BuyHero);
+Routers.post('/marketplace/sell/cancel/:myHeroId', JwtVerifyUser, CancelSell);
 
 // Admin Router
 Routers.post('/admin/create-hero', JwtVerifyAdmin, Upload.single('img'), CreateHero);

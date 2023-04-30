@@ -19,7 +19,6 @@ export async function UpdateUser(req, res){
                 attributes: ['id', 'email', 'role']
                 }]
         });
-
         if(result[0] == 1){
             res.status(200).json({msg: 'Update success', statusCode: 200, data: findUser});
         }else if(result[0] == 0){

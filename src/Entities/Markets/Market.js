@@ -1,5 +1,5 @@
 import { DB, DataTypes } from "../../Configs/DbConfig.js";
-import MyHero from '../Users/MyHero.js';
+import MyHero from "../Users/MyHero.js";
 
 const Market = DB.define('m_market', {
     id: {type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true},

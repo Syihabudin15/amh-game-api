@@ -1,10 +1,19 @@
 import Hero from '../Entities/Markets/Hero.js';
+import MyHero from '../Entities/Users/MyHero.js';
+import { DB } from '../Configs/DbConfig.js';
+import { Jwt, secret } from '../Configs/JwtConfigs.js';
+import Market from '../Entities/Markets/Market.js';
+import HeroTransaction from '../Entities/Transactions/HeroTransaction.js';
+import Wallet from '../Entities/Users/Wallet.js';
+import User from '../Entities/Users/User.js';
+
+const t = await DB.transaction();
 
 export async function CreateHero(req, res){
     let {level, supply, power, max_point, default_price} = req.body;
     let img = req.file.filename;
 
-    if(level == null || power < 1 || max_point < 100 || default_price == null){
+    if(level === null || power < 1 || max_point < 100 || default_price === null){
         return res.status(400).json({msg: 'Bad request. level, supply, power, max_point, default_price', statusCode: 400});
     }
     try{
@@ -17,7 +26,7 @@ export async function CreateHero(req, res){
     }
 };
 
-export async function GetHero(req, res){
+export async function GetHeroById(req, res){
     try{
         let result = await Hero.findOne({where: {id: req.params.id}});
         if(result == null) return res.status(404).json({msg: 'Hero not found', statusCode: 404});
@@ -28,12 +37,172 @@ export async function GetHero(req, res){
 };
 
 export async function GetAllHero(req, res){
+    let {page, perPage} = req.query;
     try{
         let result = await Hero.findAndCountAll({
-            limit: 1
+            offset: page * perPage,
+            limit: perPage
         });
         res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
     }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function SearchByLevel(req, res){
+    let {level} = req.query;
+    try{
+        let result = await Hero.findOne({where: {level: level}});
+        if(result === null) return res.status(404).json({msg: 'Hero not found', statusCode: 404});
+        res.status(200).json({msg: 'Search by level success', statusCode: 200, data: result});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function SendHero(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    let {myHeroId, receiver} = req.body;
+    try{
+        let myHero = await MyHero.findOne({where: {id: myHeroId}});
+        let target = await User.findOne({where: {email: receiver}});
+        if(myHero === null) return res.status(404).json({msg: 'not found', statusCode: 404});
+        if(myHero.is_trade === true) return res.status(403).json({msg: 'Hero in listing', statusCode: 403});
+        if(myHero.mUserId !== token.id) return res.status(403).json({msg: 'Youre not allowed to send this Hero', statusCode: 403});
+        
+        let trans = await HeroTransaction.create({type: 'send', receiver: target.id, mMyHeroId: myHeroId}, {t});
+        myHero.mUserId = target.id;
+        
+        await myHero.save();
+        t.commit();
+        res.status(200).json({msg: 'Send success', statusCode: 200, data: trans});
+    }catch(err){
+        t.rollback();
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function SellHero(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    let {my_hero_id, price} = req.body;
+    try{
+        let findMyHero = await MyHero.findOne(
+            {
+                where: {id: my_hero_id},
+                include: [{model: Hero}]
+            }
+        );
+        if(findMyHero === null) return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
+        if(findMyHero.mUserId !== token.id) return res.status(403).json({msg: 'Youre not allowed to send this Hero', statusCode: 403});;
+        if(findMyHero.m_heros.level === 0) return res.status(400).json({msg: 'Hero level 0 cant sell', statusCode: 400});
+
+        let minPrice = parseInt(findMyHero.m_hero.default_price - (findMyHero.m_hero.level * 5000));
+        if(price <= minPrice) return res.status(400).json({msg: `price cannot lower than ${minPrice}`, statusCode: 400});
+
+        findMyHero.is_trade = true;
+        let listing = await Market.create({mMyHeroId: findMyHero.id, price: price},{t});
+
+        await findMyHero.save();
+        t.commit();
+        res.status(201).json({msg: 'Listing Success', statusCode: 201, data: listing});
+    }catch(err){
+        t.rollback();
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function BuyHero(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    let marketId = req.params.marketId;
+    try{
+        let buyer = await Wallet.findOne({where: {mUserId: token.id}});
+        let findMarket = await Market.findOne({where: {id: marketId}, include: [{model: MyHero,include:[{model: Hero}]}]});
+        let seller = await Wallet.findOne({where: {mUserId: findMarket.m_my_heros.mUserId}});
+
+        if(findMarket === null) return res.status(404).json({msg: 'Market not found', statusCode: 404});
+        if(findMarket.is_sold === true) return res.status(403).json({msg: 'Hero has sold out', statusCode: 403});
+        if(buyer.balance < findMarket.price) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+        
+        findMarket.is_sold = true;
+        buyer.balance -= findMarket.price;
+        seller.balance += findMarket.price;
+        let result = await MyHero.update({
+            mUserId: token.id,
+            is_trade: false
+        },{where: {id: findMarket.mMyHeroId}});
+
+        if(result[0] == 1){
+            
+            await findMarket.save();
+            await buyer.save();
+            await seller.save();
+            await transHero.save();
+            t.commit();
+            res.status(200).json({msg: 'Buy success', statusCode: 200, data: findMarket.m_my_heros});
+        }else if(result[0] == 0){
+            return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
+        }else{
+            return res.status(400).json({msg: 'Bad Requeest. your input data is same with before', statusCode: 400});
+        }
+    }catch(err){
+        t.rollback();
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function CancelSell(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    let myHeroId = req.params.myHeroId;
+    try{
+        let myHero = await MyHero.findOne({where: {id: myHeroId}});
+
+        if(myHero === null) return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
+        if(token.id !== myHero.mUserId) return res.status(403).json({msg: 'sorry its not youre Hero', statusCode: 403});
+
+        myHero.is_trade = false;
+        await Market.destroy({where: {mHeroId: myHeroId}},{t});
+        await myHero.save();
+
+        t.commit();
+        res.status(200).json({msg: 'Cancel sell Success', statusCode: 200, data: myHero});
+    }catch(err){
+        t.rollback();
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+
+export async function BuyFromAdmin(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    let {heroId, amount} = req.body ;
+    try{
+        let hero = await Hero.findOne({where: {id: heroId}});
+        let wallet = await Wallet.findOne({where: {mUserId: token.id}});
+        let total = hero.default_price*amount;
+
+        if(hero === null) return res.status(404).json({msg: 'Hero not found', statusCode: 404});
+        if(wallet === null) return res.status(404).json({msg: 'Wallet not found', statusCode: 404});
+        if(hero.stock === 0) return res.status(400).json({msg: 'no more Stock', statusCode: 400});
+        if(wallet.balance < total) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+        
+        let newHeros = [];
+        for(let i = 0; i < amount; i++){
+            newHeros.push({
+                mUserId: token.id,
+                mHeroId: hero.id
+            });
+        };
+
+        let send = await MyHero.bulkCreate(newHeros,{t});
+        wallet.balance -= total;
+        hero.stock -= amount;
+        await hero.save();
+        await wallet.save();
+        t.commit();
+        
+        res.status(201).json({msg: 'Buy Success', statusCode: 201, data: send});
+    }catch(err){
+        t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };

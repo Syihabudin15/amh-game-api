@@ -38,36 +38,35 @@ export async function CombineHero(req, res){
             where: {id: token.id},
             include: [{model: MyHero}]
         });
+        let wallet = await Wallet.findOne({where: {mUserId: token.id}});
         if(user === null) return res.status(404).json({msg: 'User not found', statusCode: 404});
 
         let hero1 = user.m_my_heros.filter(e => e.id == my_hero_id_1);
         let hero2 = user.m_my_heros.filter(e => e.id == my_hero_id_2);
 
         let findHero = await Hero.findOne({where: {id: hero1[0].mHeroId}});
-        let nextHero = await Hero.findOne({where: {level: parseInt(findHero.level +1)}});
+        let nextHero = await Hero.findOne({where: {level: findHero.level +1}});
 
         if(hero1.length == 0 || hero2.length == 0) {
             return res.status(404).json({msg: 'Youre hero is not found', statusCode: 404});
         }
-        if(hero1[0].my_point != findHero.max_point && hero2[0].my_point != findHero.max_point){
+        if(hero1[0].my_point != findHero.max_point || hero2[0].my_point != findHero.max_point){
             return res.status(403).json({msg: 'Youre point heroes not Max', statusCode: 403});
         }
+        if(nextHero === null) return res.status(404).json({msg: 'Sorry for now we not have more higher hero level', statusCode: 404});
 
-        await MyHero.destroy({
-            where: {
-                id: {
-                    [Op.or]: [hero1[0].id, hero2[0].id]
-                }
-            }
-        }, {transaction: t});
+        await MyHero.destroy({where: {id: my_hero_id_1}}, {t});
+        await MyHero.destroy({where: {id: my_hero_id_2}}, {t});
+        findHero.stock += 2;
+        wallet.balance -= parseInt(findHero.level *500);
+        let result = await MyHero.create({mUserId: user.id, mHeroId: nextHero.id},{t});
+        await findHero.save();
+        await wallet.save();
 
-        let result = await MyHero.create({mUserId: user.id, mHeroId: nextHero.id},{transaction: t});
-        
-
-        await t.commit();
-        res.status(200).json({msg: 'Combine Success', statusCode: 200, data: result});
+        t.commit();
+        res.status(201).json({msg: 'Combine Success', statusCode: 201, data: result});
     }catch(err){
-        await t.rollback();
+        t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
@@ -79,16 +78,17 @@ export async function PlayGame(req, res){
         let wallet = await Wallet.findOne({where: {mUserId: myHero.mUserId}});
         let hero = await Hero.findOne({where: {id: myHero.mHeroId}});
 
-        if(hero == null || wallet == null || myHero == null) return res.status(404).json({msg: 'invalid data. user_id, my_hero_id', statusCode: 404});
+        if(hero === null || wallet === null || myHero === null) return res.status(404).json({msg: 'invalid data. user_id, my_hero_id', statusCode: 404});
         if(myHero.my_point < hero.max_point){
             myHero.my_point += 1;
             await myHero.save();
         };
-        wallet.balance += hero.power;
+        wallet.balance += parseInt(hero.power);
         await wallet.save();
 
         res.status(200).json({msg: 'Balance changed', statusCode: 200, data: {
-            my_point: myHero.my_point
+            my_point: myHero.my_point,
+            my_balance: wallet.balance
         }});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});

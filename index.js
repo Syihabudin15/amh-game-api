@@ -5,7 +5,6 @@ import {} from "dotenv/config";
 import Routers from './src/Controllers/Controller.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { SendEmail } from "./src/Configs/Mailer.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -13,7 +12,6 @@ const __dirname = path.dirname(__filename);
 
 const app = Express();
 const port = process.env.PORT;
-const server = process.env.SERVER;
 
 app.use(bodyParser.json());
 app.use(Express.json());
@@ -24,4 +22,4 @@ app.use('/img', Express.static(path.join(__dirname,'/src/Resources/img')));
 app.use('/api', Routers);
 
 
-app.listen(port, () => console.log(`App running in http://${server}:${port}`));
+app.listen(port, () => console.log(`App running in Port: ${port}`));
