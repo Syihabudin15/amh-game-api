@@ -21,7 +21,7 @@ export function JwtVerifyUser(req, res, next){
 
         next();
     }catch(err){
-        return res.status(500).json({msg: 'Error while verify token', statusCode: 500});
+        return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
 
@@ -38,7 +38,7 @@ export function JwtVerifyAdmin(req, res, next){
 
         next();
     }catch(err){
-        return res.status(500).json({msg: 'Error while verify token', statusCode: 500});
+        return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
 

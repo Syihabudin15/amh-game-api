@@ -12,7 +12,7 @@ const MyHero = DB.define('m_my_hero', {
 MyHero.belongsTo(User);
 MyHero.belongsTo(Hero);
 
-Hero.hasOne(MyHero);
+Hero.hasMany(MyHero);
 User.hasMany(MyHero);
 
 await MyHero.sync();

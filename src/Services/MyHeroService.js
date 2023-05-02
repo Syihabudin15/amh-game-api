@@ -48,7 +48,7 @@ export async function CombineHero(req, res){
         let nextHero = await Hero.findOne({where: {level: findHero.level +1}});
 
         if(hero1.length == 0 || hero2.length == 0) {
-            return res.status(404).json({msg: 'Youre hero is not found', statusCode: 404});
+            return res.status(404).json({msg: 'you need 2 hero with same level to combine', statusCode: 404});
         }
         if(hero1[0].my_point != findHero.max_point || hero2[0].my_point != findHero.max_point){
             return res.status(403).json({msg: 'Youre point heroes not Max', statusCode: 403});
@@ -58,13 +58,16 @@ export async function CombineHero(req, res){
         await MyHero.destroy({where: {id: my_hero_id_1}}, {t});
         await MyHero.destroy({where: {id: my_hero_id_2}}, {t});
         findHero.stock += 2;
+        nextHero.stock -= 1;
         wallet.balance -= parseInt(findHero.level *500);
+
         let result = await MyHero.create({mUserId: user.id, mHeroId: nextHero.id},{t});
         await findHero.save();
         await wallet.save();
+        await nextHero.save();
 
         t.commit();
-        res.status(201).json({msg: 'Combine Success', statusCode: 201, data: result});
+        res.status(201).json({msg: 'Congrats Combine Success, you get new Hero', statusCode: 201, data: result});
     }catch(err){
         t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
