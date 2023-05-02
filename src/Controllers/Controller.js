@@ -32,7 +32,7 @@ Routers.post('/user/wallet/deposit/ewallet', JwtVerifyUser, DepositViaEwallet);
 Routers.post('/user/wallet/req-withdraw', JwtVerifyUser, RequestWithdraw);
 Routers.post('/user/wallet/verify-withdraw', JwtVerifyUser, VerifyWithdraw);
 Routers.get('/check/:id', JwtVerifyUser, CheckDepositStatus);
-Routers.post('/user/wallet/deposit/callback', JwtVerifyUser, PaymentCallback);
+Routers.post('/user/wallet/deposit/callback', PaymentCallback);
 
 // My Hero Router
 Routers.get('/user/my-hero', JwtVerifyUser, GetMyHero);
