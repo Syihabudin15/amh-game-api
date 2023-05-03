@@ -5,7 +5,7 @@ import { BuyFromAdmin, BuyHero, CancelSell, CreateHero,
         SellHero, SendHero } from '../Services/HeroService.js';
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
-import { CheckDepositStatusEWallet, CheckMyWithdrawStatus, DepositViaEwallet, GetAllWithdrawPaymentMethod, GetMyWallet,
+import { CheckMyWithdrawStatus, DepositViaEwallet, GetAllWithdrawPaymentMethod, GetMyWallet,
         PaymentCallbackEWallet, VerifyWithdraw } from "../Services/WalletService.js";
 import { CombineHero, GetMyHero, PlayGame } from "../Services/MyHeroService.js";
 import { CreateCard, GetMyCard } from "../Services/CardService.js";
@@ -33,7 +33,6 @@ Routers.post('/user/wallet/deposit/ewallet', JwtVerifyUser, DepositViaEwallet);
 Routers.post('/user/wallet/req-withdraw', JwtVerifyUser, RequestWithdraw);
 Routers.post('/user/wallet/verify-withdraw', JwtVerifyUser, VerifyWithdraw);
 Routers.get('/user/wallet/withdraw-status', JwtVerifyUser, CheckMyWithdrawStatus);
-Routers.get('/check/ewallet/:id', JwtVerifyUser, CheckDepositStatusEWallet);
 Routers.post('/user/wallet/deposit/callback', PaymentCallbackEWallet);
 Routers.get('/withdraw/payment-methods', GetAllWithdrawPaymentMethod);
 

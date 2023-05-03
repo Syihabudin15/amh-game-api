@@ -12,6 +12,7 @@ import Credential from '../Entities/Users/Credential.js';
 const t = await DB.transaction();
 const XENDIT_KEY = process.env.XENDIT_KEY;
 const XENDIT_CALL = process.env.XENDIT_CALL;
+const XENDIT_BASIC = process.env.XENDIT_BASIC;
 const x = new Xendit({secretKey: XENDIT_KEY});
 const { EWallet } = x;
 const x_ew = new EWallet({});
@@ -40,7 +41,7 @@ export async function GetAllWithdrawPaymentMethod(req, res){
             headers: {
                 accept: 'application/json',
                 'content-type': 'application/json',
-                authorization: `Basic eG5kX2RldmVsb3BtZW50X0M3R1dHbnQxRWNuMXRVNEZzaE5BbkZ3SXVibkYxR1dWang4cnduR0hBV0pkVGNVZVlsUm01NEV0NXRndkk6`
+                authorization: `${XENDIT_BASIC}`
             }
         });
 
@@ -125,7 +126,7 @@ export async function VerifyWithdraw(req, res){
             headers: {
                 accept: 'application/json',
                 'content-type': 'application/json',
-                authorization: `Basic eG5kX2RldmVsb3BtZW50X0M3R1dHbnQxRWNuMXRVNEZzaE5BbkZ3SXVibkYxR1dWang4cnduR0hBV0pkVGNVZVlsUm01NEV0NXRndkk6`
+                authorization: `${XENDIT_BASIC}`
             },
             data: {
                 external_id: 'coba123',
@@ -168,7 +169,7 @@ export async function CheckMyWithdrawStatus(req, res){
                 headers: {
                     accept: 'application/json',
                     'content-type': 'application/json',
-                    authorization: `Basic eG5kX2RldmVsb3BtZW50X0M3R1dHbnQxRWNuMXRVNEZzaE5BbkZ3SXVibkYxR1dWang4cnduR0hBV0pkVGNVZVlsUm01NEV0NXRndkk6`
+                    authorization: `${XENDIT_BASIC}`
                 }
             });
             if(request.data.status === 'COMPLETED'){
@@ -232,7 +233,7 @@ export async function DepositViaEwallet(req, res){
             headers: {
                 accept: 'application/json',
                 'content-type': 'application/json',
-                authorization: `Basic eG5kX2RldmVsb3BtZW50X0M3R1dHbnQxRWNuMXRVNEZzaE5BbkZ3SXVibkYxR1dWang4cnduR0hBV0pkVGNVZVlsUm01NEV0NXRndkk6`
+                authorization: `${XENDIT_BASIC}`
             },
             data: {
                 amount: parseInt(amount),
@@ -263,17 +264,6 @@ export async function DepositViaEwallet(req, res){
     }
 };
 
-export async function CheckDepositStatusEWallet(req, res){
-    let id = req.params.id;
-    try{
-        let status = await x_ew.getEWalletChargeStatus({chargeID: id});
-
-        res.status(200).json({msg: "success", statusCode: 200, data: status});
-    }catch(err){
-        return res.status(500).json({msg: err.message, statusCode: 500});
-    }
-};
-
 export async function PaymentCallbackEWallet(req, res){
     let data = req.body;
     let x_token = req.header('x-callback-token') ? req.header('x-callback-token') : '';
@@ -298,3 +288,6 @@ export async function PaymentCallbackEWallet(req, res){
     }
 };
 
+export async function GetAllMyTransaction(req, res){
+
+};
