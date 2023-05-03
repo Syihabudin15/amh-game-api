@@ -1,18 +1,19 @@
 import Wallet from '../Entities/Users/Wallet.js';
 import { Jwt, secret } from '../Configs/JwtConfigs.js';
 import WalletTransaction from '../Entities/Transactions/WalletTransaction.js';
-import { DB } from '../Configs/DbConfig.js';
+import { DB, Op } from '../Configs/DbConfig.js';
 import {} from 'dotenv/config';
 import { SendEmail } from '../Configs/Mailer.js';
 import User from '../Entities/Users/User.js';
 import Xendit from 'xendit-node';
 import axios from 'axios';
+import Credential from '../Entities/Users/Credential.js';
 
 const t = await DB.transaction();
 const XENDIT_KEY = process.env.XENDIT_KEY;
 const XENDIT_CALL = process.env.XENDIT_CALL;
 const x = new Xendit({secretKey: XENDIT_KEY});
-const {EWallet} = x;
+const { EWallet } = x;
 const x_ew = new EWallet({});
 
 export async function CreateWallet(data){
@@ -31,9 +32,27 @@ export async function GetMyWallet(req, res){
     }
 };
 
+export async function GetAllWithdrawPaymentMethod(req, res){
+    try{
+        let list = await axios.request({
+            method: 'GET',
+            url: 'https://api.xendit.co/available_disbursements_banks',
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: `Basic eG5kX2RldmVsb3BtZW50X0M3R1dHbnQxRWNuMXRVNEZzaE5BbkZ3SXVibkYxR1dWang4cnduR0hBV0pkVGNVZVlsUm01NEV0NXRndkk6`
+            }
+        });
+
+        res.status(200).json({msg: 'Success get all payment method', statusCode: 200, data: list.data});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
 export async function RequestWithdraw(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
-    let {amount, bank} = req.body;
+    let {amount, bank, no_bank} = req.body;
     let otp = parseInt(Math.floor(Math.random() * 1000000)); // OTP for make Withdrawal
     let fee = 5000;
 
@@ -47,21 +66,22 @@ export async function RequestWithdraw(req, res){
         let myWallet = await Wallet.findOne({where: {mUserId: token.id}});
 
         if(myWallet === null || user === null) return res.status(404).json({msg: 'User or Wallet not found', statusCode: 404});
-        if(myWallet.balance < 10000) return res.status(403).json({msg: 'Minimum Withraw is 10000', statusCode: 403});
-        if(myWallet.balance <= parseInt(amount)) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+        if(myWallet.balance < 20000) return res.status(403).json({msg: 'Minimum Withraw is 10000', statusCode: 403});
         if(parseInt(amount) <= 500000 && parseInt(amount) >= 300000){
             fee = 10000;
         }else if(parseInt(amount) <= 1000000 && parseInt(amount) >= 500000){
             fee = 20000;
-        }else if(parseInt(amount) <= 1000000){
+        }else if(parseInt(amount) >= 1000000){
             fee = 50000;
         }
+        let afterFee = myWallet.balance - parseInt(parseInt(amount)+fee);
+        if(afterFee < 0) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
 
         let result = await WalletTransaction.create({
-            bank: bank, mWalletId: myWallet.id, amount: parseInt(amount), type: 'withdraw', is_paid: false
+            bank: bank, mWalletId: myWallet.id, amount: parseInt(amount), type: 'withdraw', is_paid: false, to: no_bank
         },{t});
         await SendEmail(
-            user.m_credentials.email,
+            user.m_credential.email,
             'Withdrawal requestt OTP',
             `
             <div>
@@ -78,7 +98,7 @@ export async function RequestWithdraw(req, res){
             `
         );
         t.commit();
-        res.status(201).json({msg: 'Request Withdraw success', statusCode: 201, data: {result, fee, otp}});
+        res.status(201).json({msg: 'Request Withdraw success', statusCode: 201, data: {result, fee, otp, no_bank}});
     }catch(err){
         t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
@@ -95,32 +115,69 @@ export async function VerifyWithdraw(req, res){
         let findTrans = await WalletTransaction.findOne({where: {id: transaction_id}});
         if(findTrans === null) return res.status(404).json({msg: 'Transaction not found', statusCode: 404});
         let myWallet = await Wallet.findOne({where: {id: findTrans.mWalletId}});
+        let user = await User.findOne({where: {id: myWallet.mUserId}});
         if(myWallet.mUserId != token.id) return res.status(403).json({msg: 'error, your not have permission', statusCode: 403});
-        if(findTrans.amount <= myWallet.balance) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+        if(findTrans.amount >= myWallet.balance) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+
+        let request = await axios.request({
+            method: 'POST',
+            url: 'https://api.xendit.co/disbursements',
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: `Basic eG5kX2RldmVsb3BtZW50X0M3R1dHbnQxRWNuMXRVNEZzaE5BbkZ3SXVibkYxR1dWang4cnduR0hBV0pkVGNVZVlsUm01NEV0NXRndkk6`
+            },
+            data: {
+                external_id: 'coba123',
+                amount: findTrans.amount - parseInt(fee),
+                bank_code: findTrans.bank,
+                account_holder_name: `${user.firstName} ${user.lastName}`,
+                account_number: findTrans.to,
+                description: `Request Withdraw ${findTrans.bank}, no Bank : ${findTrans.to}`
+            }
+        });
         
-        let total = parseInt(findTrans.amount + fee);
-        myWallet.balance -= total;
-        findTrans.is_paid = true;
+        myWallet.balance -= findTrans.amount;
+        findTrans.trans_id = request.data.id;
 
         await myWallet.save();
         await findTrans.save();
         t.commit();
-        res.status(201).json({msg: 'Withdraw Success', statusCode: 201});
+        res.status(201).json({msg: 'Withdraw Success', statusCode: 201, data: request.data});
     }catch(err){
         t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
 
-export async function CancelWithdraw(req, res){
-    let transaction_id = req.params.transaction_id;
+export async function CheckMyWithdrawStatus(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
     try{
-        let findTrans = await WalletTransaction.findOne({where: {id: transaction_id}});
-        if(findTrans === null) return res.status(404).json({msg: 'Transaction not found', statusCode: 404});
-        if(findTrans.is_paid === true) return res.status(403).json({msg: 'sorry payment alredy sent', statusCode: 403});
+        let myWallet = await Wallet.findOne({where: {mUserId: token.id}});
+        let trans = await WalletTransaction.findAll({where: {
+            [Op.and]: [
+                {mWalletId: myWallet.id},
+                {type: 'withdraw'},
+                {is_paid: false}
+            ]
+        }});
+        for(let i = 0; i < trans.length; i++){
+            let request = await axios.request({
+                method: 'GET',
+                url: `https://api.xendit.co/disbursements/${trans[i].trans_id}`,
+                headers: {
+                    accept: 'application/json',
+                    'content-type': 'application/json',
+                    authorization: `Basic eG5kX2RldmVsb3BtZW50X0M3R1dHbnQxRWNuMXRVNEZzaE5BbkZ3SXVibkYxR1dWang4cnduR0hBV0pkVGNVZVlsUm01NEV0NXRndkk6`
+                }
+            });
+            if(request.data.status === 'COMPLETED'){
+                trans[i].is_paid = true;
+                await trans[i].save();
+            }
+        }
 
-        findTrans.type = 'cancel';
-        await findTrans.save();
+        res.status(200).json({msg: 'Succcess', statusCode: 200, data: trans});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
@@ -136,11 +193,13 @@ export async function SendBalance(req, res){
         
         if(myWallet === null) return res.status(404).json({msg: 'Youre Wallet is not found', statusCode: 404});
         if(walletTarget === null) return res.status(404).json({msg: 'Wallet target is not found', statusCode: 404});
-        if(myWallet.balance <= parseInt(amount)) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+        if(myWallet.balance <= parseInt(parseInt(amount)+200)) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
 
         walletTarget.balance += parseInt(amount);
         myWallet.balance -+ parseInt(parseInt(amount)+200);
-        let send = await WalletTransaction.create({to: walletTarget, type: 'send', amount: parseInt(amount), is_paid: true, mWalletId: myWallet.id}, {t});
+        let send = await WalletTransaction.create({
+            to: walletTarget.no_wallet, type: 'send', amount: parseInt(amount), is_paid: true, mWalletId: myWallet.id
+        }, {t});
         await walletTarget.save();
         await myWallet.save();
 
@@ -155,7 +214,7 @@ export async function SendBalance(req, res){
 export async function DepositViaEwallet(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {amount, bank} = req.body;
-    if(bank !== "DANA") return res.status(400).json({msg: 'For now we only support DANA transaction', statusCode: 400});
+    if(bank === null) return res.status(400).json({msg: 'Bank is required', statusCode: 400});
     if(amount < 10000) return res.status(400).json({msg: 'Minimum of deposit is 10000', statusCode: 400});
     
     try{
@@ -184,7 +243,8 @@ export async function DepositViaEwallet(req, res){
                     ewallet: {
                         channel_code: bank,
                         channel_properties: {
-                            success_return_url: `http://localhost:5000/user/wallet/deposit/callback`,
+                            success_return_url: `https://amh-coin.netlify.app/user/wallet`,
+                            failure_return_url: 'https://amh-coin.netlify.app/user/wallet',
                             mobile_number: user.phone.toString()
                         }
                     },
@@ -203,11 +263,26 @@ export async function DepositViaEwallet(req, res){
     }
 };
 
-export async function CheckDepositStatus(req, res){
+export async function CheckDepositStatusEWallet(req, res){
     let id = req.params.id;
     try{
         let status = await x_ew.getEWalletChargeStatus({chargeID: id});
-        let findTrans = await WalletTransaction.findOne({where: {trans_id: id}});
+
+        res.status(200).json({msg: "success", statusCode: 200, data: status});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function PaymentCallbackEWallet(req, res){
+    let data = req.body;
+    let x_token = req.header('x-callback-token') ? req.header('x-callback-token') : '';
+    try{
+        if(XENDIT_CALL !== x_token) res.status(403).json({msg: 'Invalid Token', statusCode: 403});
+
+        let result = data.json();
+        let status = await x_ew.getEWalletChargeStatus({chargeID: result.id});
+        let findTrans = await WalletTransaction.findOne({where: {trans_id: result.id}});
         let wallet = await Wallet.findOne({where: {id: findTrans.mWalletId}});
         if(status.status === 'SUCCEEDED'){
             findTrans.is_paid = true;
@@ -217,20 +292,9 @@ export async function CheckDepositStatus(req, res){
         await findTrans.save();
         await wallet.save();
 
-        res.status(200).json({msg: "success", statusCode: 200, data: status});
+        res.status(200).json({msg: 'Callback succeess', statusCode: 200, data: result});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
 
-export async function PaymentCallback(req, res){
-    let data = req.body;
-    let x_token = req.header('x-callback-token') ? req.header('x-callback-token') : '';
-    let isSuccess = 'failed';
-    try{
-        if(XENDIT_CALL === x_token) isSuccess = 'success';
-        res.status(200).json({msg: 'Callback succeess', statusCode: 200, data: {data, isSuccess}});
-    }catch(err){
-        return res.status(500).json({msg: err.message, statusCode: 500});
-    }
-};
