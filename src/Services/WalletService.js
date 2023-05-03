@@ -8,8 +8,6 @@ import User from '../Entities/Users/User.js';
 import Xendit from 'xendit-node';
 import axios from 'axios';
 import Credential from '../Entities/Users/Credential.js';
-import { where } from 'sequelize';
-import { Json } from 'sequelize/types/utils.js';
 
 const t = await DB.transaction();
 const XENDIT_KEY = process.env.XENDIT_KEY;
@@ -160,8 +158,7 @@ export async function GetAllWithdraw(req, res){
         let trans = await WalletTransaction.findAll({where: {
             [Op.and]: [
                 {mWalletId: myWallet.id},
-                {type: 'withdraw'},
-                {is_paid: false}
+                {type: 'withdraw'}
             ]
         }});
         for(let i = 0; i < trans.length; i++){
