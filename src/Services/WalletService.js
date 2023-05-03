@@ -8,6 +8,8 @@ import User from '../Entities/Users/User.js';
 import Xendit from 'xendit-node';
 import axios from 'axios';
 import Credential from '../Entities/Users/Credential.js';
+import { where } from 'sequelize';
+import { Json } from 'sequelize/types/utils.js';
 
 const t = await DB.transaction();
 const XENDIT_KEY = process.env.XENDIT_KEY;
@@ -151,7 +153,7 @@ export async function VerifyWithdraw(req, res){
     }
 };
 
-export async function CheckMyWithdrawStatus(req, res){
+export async function GetAllWithdraw(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     try{
         let myWallet = await Wallet.findOne({where: {mUserId: token.id}});
@@ -270,7 +272,7 @@ export async function PaymentCallbackEWallet(req, res){
     try{
         if(XENDIT_CALL !== x_token) res.status(403).json({msg: 'Invalid Token', statusCode: 403});
 
-        let result = data.json();
+        let result = JSON.parse(data);
         let status = await x_ew.getEWalletChargeStatus({chargeID: result.id});
         let findTrans = await WalletTransaction.findOne({where: {trans_id: result.id}});
         let wallet = await Wallet.findOne({where: {id: findTrans.mWalletId}});
@@ -288,6 +290,27 @@ export async function PaymentCallbackEWallet(req, res){
     }
 };
 
-export async function GetAllMyTransaction(req, res){
+export async function GetAllSendBalance(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    try{
+        let wallet = await Wallet.findOne({where: {mUserId: token.id}});
+        let receive = await WalletTransaction.findAll({where: {[Op.and]: [{to: wallet.no_wallet}, {type: 'send'}]}});
+        let send = await WalletTransaction.findAll({where: {[Op.and]: [{mWalletId : wallet.id}, {type: 'send'}]}});
 
+        res.status(200).json({msg: 'Success get all Send Balance', statusCode: 200, data: {receive, send}});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function GetAllDeposit(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    try{
+        let wallet = await Wallet.findOne({where: {mUserId: token.id}});
+        let trans = await WalletTransaction.findAll({where: {[Op.and]: [{mWalletId: wallet.id}, {type: 'deposit'}]}});
+
+        res.status(200).json({msg: 'Success get all Deposit', statusCode: 200, data: trans});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
 };
