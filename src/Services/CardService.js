@@ -2,15 +2,16 @@ import Card from '../Entities/Users/Card.js';
 import { DB, Op } from '../Configs/DbConfig.js';
 import { Jwt, secret } from '../Configs/JwtConfigs.js';
 
-const t = await DB.transaction();
-
 export async function CreateCard(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {name, no_card} = req.body;
+
     if(name === null || no_card === null){
         return res.status(400).json({msg: 'Bad request. name, no_card', statusCode: 400});
     }
+    
     try{
+        const t = await DB.transaction();
         let find = await Card.findOne({
             where: {
                 [Op.and]: [

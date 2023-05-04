@@ -6,7 +6,9 @@ const WalletTransaction = DB.define('t_wallet_transaction', {
     to: {type: DataTypes.STRING, allowNull: true},
     type: {type: DataTypes.STRING, allowNull: false},
     amount: {type: DataTypes.INTEGER, allowNull: false},
-    bank: {type: DataTypes.STRING, allowNull: true},
+    payment_method: {type: DataTypes.STRING, allowNull: true},
+    code_bank: {type: DataTypes.STRING, allowNull: true},
+    status: {type: DataTypes.STRING, allowNull: true},
     trans_id: {type: DataTypes.STRING, allowNull: true},
     is_paid: {type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false}
 });

@@ -5,13 +5,13 @@ import { BuyFromAdmin, BuyHero, CancelSell, CreateHero,
         SellHero, SendHero } from '../Services/HeroService.js';
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
-import { DepositViaEwallet, GetAllDeposit, GetAllSendBalance, GetAllWithdraw, GetAllWithdrawPaymentMethod, GetMyWallet,
-        PaymentCallbackEWallet, VerifyWithdraw } from "../Services/WalletService.js";
+import { GetAllDeposit, GetAllSendBalance, GetAllWithdraw, GetMyWallet } from "../Services/WalletService.js";
 import { CombineHero, GetMyHero, PlayGame } from "../Services/MyHeroService.js";
 import { CreateCard, GetMyCard } from "../Services/CardService.js";
 import { JwtVerifyUser, JwtVerifyAdmin } from "../Configs/JwtConfigs.js";
 import { RequestOtp, VerifyOtp } from "../Services/VerifyService.js";
-import { RequestWithdraw } from "../Services/WalletService.js";
+import { DepositViaEwallet, GetWithdrawPaymentMethod, WithdrawRequest, WithdrawVerify } from "../Services/PaymentService.js";
+import { DepositFailureCallback, DepositSuccessCallback, WithdrawFailureCallback, WithdrawSuccessCallback } from "../Services/HandleCallback.js";
 
 const Routers = Express.Router();
 
@@ -21,22 +21,29 @@ Routers.post('/sign-in', SignIn);
 
 // User Router
 Routers.put('/user/update', JwtVerifyUser, UpdateUser);
-Routers.get('/user/', JwtVerifyUser, GetMySelf);
+Routers.get('/user', JwtVerifyUser, GetMySelf);
 
 // Verification
-Routers.post('/user/req-otp', JwtVerifyUser, RequestOtp);
+Routers.post('/user/req-verify', JwtVerifyUser, RequestOtp);
 Routers.post('/user/verify', JwtVerifyUser, VerifyOtp);
 
 // Wallet Router
 Routers.get('/user/wallet', JwtVerifyUser, GetMyWallet);
-Routers.post('/user/wallet/deposit/ewallet', JwtVerifyUser, DepositViaEwallet);
-Routers.post('/user/wallet/req-withdraw', JwtVerifyUser, RequestWithdraw);
-Routers.post('/user/wallet/verify-withdraw', JwtVerifyUser, VerifyWithdraw);
-Routers.post('/user/wallet/deposit/callback', PaymentCallbackEWallet);
-Routers.get('/withdraw/payment-methods', GetAllWithdrawPaymentMethod);
 Routers.get('/user/wallet/history-send', JwtVerifyUser, GetAllSendBalance);
 Routers.get('/user/wallet/history-withdraw', JwtVerifyUser, GetAllWithdraw);
 Routers.get('/user/wallet/history-deposit', JwtVerifyUser, GetAllDeposit);
+
+//Payment Router
+Routers.post('/user/deposit/ewallet', JwtVerifyUser, DepositViaEwallet);
+Routers.post('/user/withdraw-req', JwtVerifyUser, WithdrawRequest);
+Routers.post('/user/withdraw-verify', JwtVerifyUser, WithdrawVerify);
+Routers.get('/withdraw/payment-method', GetWithdrawPaymentMethod);
+
+// Callback Payment
+Routers.post('/deposit/callback/success', DepositSuccessCallback);
+Routers.post('/deposit/callback/failure', DepositFailureCallback);
+Routers.post('/withdraw/callback/success', WithdrawSuccessCallback);
+Routers.post('/withdraw/callback/failure', WithdrawFailureCallback);
 
 // My Hero Router
 Routers.get('/user/my-hero', JwtVerifyUser, GetMyHero);

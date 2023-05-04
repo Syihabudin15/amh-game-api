@@ -8,7 +8,6 @@ import Wallet from '../Entities/Users/Wallet.js';
 import User from '../Entities/Users/User.js';
 import Credential from '../Entities/Users/Credential.js';
 
-const t = await DB.transaction();
 
 export async function CreateHero(req, res){
     let {level, supply, power, max_point, default_price} = req.body;
@@ -70,7 +69,10 @@ export async function SearchByLevel(req, res){
 export async function SendHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {myHeroId, receiver} = req.body;
+
     try{
+        const t = await DB.transaction();
+
         let myHero = await MyHero.findOne({where: {id: myHeroId}});
         let target = await User.findOne({
             include: [{
@@ -99,7 +101,10 @@ export async function SendHero(req, res){
 export async function SellHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {my_hero_id, price} = req.body;
+
     try{
+        const t = await DB.transaction();
+
         let findMyHero = await MyHero.findOne(
             {
                 where: {id: my_hero_id},
@@ -111,7 +116,7 @@ export async function SellHero(req, res){
         if(findMyHero.m_hero.level === 0) return res.status(400).json({msg: 'Hero level 0 cant sell', statusCode: 400});
 
         let minPrice = parseInt(findMyHero.m_hero.default_price - (findMyHero.m_hero.level * 5000));
-        if(price <= minPrice) return res.status(400).json({msg: `price cannot lower than ${minPrice}`, statusCode: 400});
+        if(price < minPrice) return res.status(400).json({msg: `price cannot lower than ${minPrice}`, statusCode: 400});
 
         findMyHero.is_trade = true;
         let listing = await Market.create({mMyHeroId: findMyHero.id, price: price},{t});
@@ -128,7 +133,10 @@ export async function SellHero(req, res){
 export async function BuyHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let marketId = req.params.marketId;
+
     try{
+        const t = await DB.transaction();
+
         let buyer = await Wallet.findOne({where: {mUserId: token.id}});
         let findMarket = await Market.findOne({where: {id: marketId}, include: [{model: MyHero,include:[{model: Hero}]}]});
         let seller = await Wallet.findOne({where: {mUserId: findMarket.m_my_heros.mUserId}});
@@ -167,7 +175,10 @@ export async function BuyHero(req, res){
 export async function CancelSell(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let myHeroId = req.params.myHeroId;
+
     try{
+        const t = await DB.transaction();
+
         let myHero = await MyHero.findOne({where: {id: myHeroId}});
 
         if(myHero === null) return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
@@ -187,11 +198,14 @@ export async function CancelSell(req, res){
 
 export async function BuyFromAdmin(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
-    let {heroId, amount} = req.body ;
+    let {heroId, quantity} = req.body ;
+
     try{
+        const t = await DB.transaction();
+
         let hero = await Hero.findOne({where: {id: heroId}});
         let wallet = await Wallet.findOne({where: {mUserId: token.id}});
-        let total = parseInt(hero.default_price*parseInt(amount));
+        let total = parseInt(hero.default_price*parseInt(quantity));
 
         if(hero === null) return res.status(404).json({msg: 'Hero not found', statusCode: 404});
         if(hero.level === 0) return res.status(403).json({msg: 'Hero not for sale', statusCode: 403});
@@ -200,7 +214,7 @@ export async function BuyFromAdmin(req, res){
         if(wallet.balance < total) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
         
         let newHeros = [];
-        for(let i = 0; i < amount; i++){
+        for(let i = 0; i < quantity; i++){
             newHeros.push({
                 mUserId: token.id,
                 mHeroId: hero.id
@@ -209,7 +223,7 @@ export async function BuyFromAdmin(req, res){
 
         let send = await MyHero.bulkCreate(newHeros,{t});
         wallet.balance -= total;
-        hero.stock -= parseInt(amount);
+        hero.stock -= parseInt(quantity);
         await hero.save();
         await wallet.save();
         t.commit();

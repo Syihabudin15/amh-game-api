@@ -3,9 +3,9 @@ import MyHero from "../Entities/Users/MyHero.js";
 import User from "../Entities/Users/User.js";
 import Wallet from '../Entities/Users/Wallet.js';
 import { Jwt, secret } from '../Configs/JwtConfigs.js';
-import { DB, Op } from "../Configs/DbConfig.js";
+import { DB } from "../Configs/DbConfig.js";
 
-const t = await DB.transaction();
+
 export async function BonusSignUp(user){
     try{
         let heroFree = await Hero.findOne({where: {level: 0}});
@@ -34,6 +34,8 @@ export async function CombineHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     
     try{
+        const t = await DB.transaction();
+
         let user = await User.findOne({
             where: {id: token.id},
             include: [{model: MyHero}]
