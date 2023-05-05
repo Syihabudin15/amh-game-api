@@ -12,10 +12,10 @@ const x_token = process.env.XENDIT_CALL;
 export async function DepositSuccessCallback(req, res){
     let data = req.body;
     let token = req.header('x-callback-token') || '';
+    const t = await DB.transaction();
     if(token !== x_token) return res.status(403).json({msg: 'Invalid token', statusCode: 403});
 
     try{
-        const t = await DB.transaction();
 
         let user = await User.findOne({where: {id: data.data.metadata.user_id}, include:[{model: Credential}]});
         let wallet = await Wallet.findOne({where: {mUserId: user.id}});
@@ -41,7 +41,7 @@ export async function DepositSuccessCallback(req, res){
 
         await wallet.save();
         t.commit();
-        res.status(201).json({msg: "Deposit Success", statusCode: 201, data: {data: data.data, result}});
+        res.status(201).json({msg: "Deposit Success", statusCode: 201, data: { data: data.data, result}});
     }catch(err){
         t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
@@ -66,10 +66,10 @@ export async function DepositFailureCallback(req, res){
 export async function WithdrawSuccessCallback(req, res){
     let data = req.body;
     let token = req.header('x-callback-token') || '';
+    const t = await DB.transaction();
     if(token !== x_token) return res.status(403).json({msg: 'Invalid token', statusCode: 403});
 
     try{
-        const t = await DB.transaction();
 
         let user = await User.findOne({where: {id: data.data.metadata.user_id}, include: [{model: Credential}]});
         let wallet = await Wallet.findOne({where: {mUserId: user.id}});

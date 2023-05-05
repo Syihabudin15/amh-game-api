@@ -69,10 +69,9 @@ export async function SearchByLevel(req, res){
 export async function SendHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {myHeroId, receiver} = req.body;
+    const t = await DB.transaction();
 
     try{
-        const t = await DB.transaction();
-
         let myHero = await MyHero.findOne({where: {id: myHeroId}});
         let target = await User.findOne({
             include: [{
@@ -101,10 +100,9 @@ export async function SendHero(req, res){
 export async function SellHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {my_hero_id, price} = req.body;
+    const t = await DB.transaction();
 
     try{
-        const t = await DB.transaction();
-
         let findMyHero = await MyHero.findOne(
             {
                 where: {id: my_hero_id},
@@ -133,10 +131,9 @@ export async function SellHero(req, res){
 export async function BuyHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let marketId = req.params.marketId;
+    const t = await DB.transaction();
 
     try{
-        const t = await DB.transaction();
-
         let buyer = await Wallet.findOne({where: {mUserId: token.id}});
         let findMarket = await Market.findOne({where: {id: marketId}, include: [{model: MyHero,include:[{model: Hero}]}]});
         let seller = await Wallet.findOne({where: {mUserId: findMarket.m_my_heros.mUserId}});
@@ -175,10 +172,9 @@ export async function BuyHero(req, res){
 export async function CancelSell(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let myHeroId = req.params.myHeroId;
+    const t = await DB.transaction();
 
     try{
-        const t = await DB.transaction();
-
         let myHero = await MyHero.findOne({where: {id: myHeroId}});
 
         if(myHero === null) return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
@@ -199,10 +195,9 @@ export async function CancelSell(req, res){
 export async function BuyFromAdmin(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {heroId, quantity} = req.body ;
+    const t = await DB.transaction();
 
     try{
-        const t = await DB.transaction();
-
         let hero = await Hero.findOne({where: {id: heroId}});
         let wallet = await Wallet.findOne({where: {mUserId: token.id}});
         let total = parseInt(hero.default_price*parseInt(quantity));

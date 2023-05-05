@@ -107,10 +107,9 @@ export async function WithdrawVerify(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {amount, fee, paymentMethod, codeBank, noBank, otpUser} = req.body;
     let exId = Math.floor(Math.random() * 10000000);
+    const t = await DB.transaction();
 
     try{
-        const t = await DB.transaction();
-
         let user = await User.findOne({where: {id: token.id}});
         let wallet = await Wallet.findOne({where: {mUserId: user.id}});
         if(otp !== otpUser) return res.status(400).json({msg: 'Otp not match', statusCode: 400});

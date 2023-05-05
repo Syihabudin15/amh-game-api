@@ -32,10 +32,9 @@ export async function GetMyHero(req, res){
 export async function CombineHero(req, res){
     let {my_hero_id_1, my_hero_id_2} = req.body;
     let token = Jwt.decode(req.header('auth-token'), secret);
+    const t = await DB.transaction();
     
     try{
-        const t = await DB.transaction();
-
         let user = await User.findOne({
             where: {id: token.id},
             include: [{model: MyHero}]

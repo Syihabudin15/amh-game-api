@@ -23,10 +23,9 @@ export async function GetMyWallet(req, res){
 export async function SendBalance(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {wallet_target, amount} = req.body;
+    const t = await DB.transaction();
 
     try{
-        const t = await DB.transaction();
-
         let walletTarget = await Wallet.findOne({where: {no_wallet: wallet_target}});
         let myWallet = await Wallet.findOne({where: {mUserId: token.id}});
         
