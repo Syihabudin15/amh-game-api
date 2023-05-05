@@ -11,7 +11,8 @@ import { CreateCard, GetMyCard } from "../Services/CardService.js";
 import { JwtVerifyUser, JwtVerifyAdmin } from "../Configs/JwtConfigs.js";
 import { RequestOtp, VerifyOtp } from "../Services/VerifyService.js";
 import { DepositViaEwallet, GetWithdrawPaymentMethod, WithdrawRequest, WithdrawVerify } from "../Services/PaymentService.js";
-import { DepositFailureCallback, DepositSuccessCallback, WithdrawFailureCallback, WithdrawSuccessCallback } from "../Services/HandleCallback.js";
+import { DepositAwaitingCapture, DepositCaptureFailure, DepositCaptureSuccess, DepositFailureCallback, DepositPendingCallback, 
+        DepositSuccessCallback, WithdrawCallback } from "../Services/HandleCallback.js";
 
 const Routers = Express.Router();
 
@@ -42,8 +43,11 @@ Routers.get('/withdraw/payment-method', GetWithdrawPaymentMethod);
 // Callback Payment
 Routers.post('/deposit/callback/success', DepositSuccessCallback);
 Routers.post('/deposit/callback/failure', DepositFailureCallback);
-Routers.post('/withdraw/callback/success', WithdrawSuccessCallback);
-Routers.post('/withdraw/callback/failure', WithdrawFailureCallback);
+Routers.post('/deposit/callback/pending', DepositPendingCallback);
+Routers.post('/deposit/callback/capture-awaiting', DepositAwaitingCapture);
+Routers.post('/deposit/callback/capture-faiure', DepositCaptureFailure);
+Routers.post('/deposit/callback/capture-success', DepositCaptureSuccess);
+Routers.post('/withdraw/callback', WithdrawCallback);
 
 // My Hero Router
 Routers.get('/user/my-hero', JwtVerifyUser, GetMyHero);

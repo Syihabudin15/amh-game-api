@@ -138,7 +138,7 @@ export async function WithdrawVerify(req, res){
 
         let trans = await WalletTransaction.create({
             type: 'withdraw', to: noBank, payment_method: paymentMethod, trans_id: request.data.id,
-            amount: amount, code_bank: codeBank, mWalletId: wallet.id, is_pais: false, status: 'pending'
+            amount: amount, code_bank: codeBank, mWalletId: wallet.id
         }, {t});
 
         t.commit();
