@@ -7,7 +7,7 @@ import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
 import { GetAllDeposit, GetAllSendBalance, GetAllWithdraw, GetMyWallet } from "../Services/WalletService.js";
 import { CombineHero, GetMyHero, PlayGame } from "../Services/MyHeroService.js";
-import { CreateCard, GetMyCard } from "../Services/CardService.js";
+import { CreateCard, DeleteCard, GetMyCard } from "../Services/CardService.js";
 import { JwtVerifyUser, JwtVerifyAdmin } from "../Configs/JwtConfigs.js";
 import { RequestOtp, VerifyOtp } from "../Services/VerifyService.js";
 import { DepositViaEwallet, GetWithdrawPaymentMethod, WithdrawRequest, WithdrawVerify } from "../Services/PaymentService.js";
@@ -59,6 +59,7 @@ Routers.post('/user/play/:myHeroId', JwtVerifyUser, PlayGame);
 // Card Router
 Routers.post('/user/card', JwtVerifyUser, CreateCard);
 Routers.get('/user/card', JwtVerifyUser, GetMyCard);
+Routers.delete('/user/card/:id', JwtVerifyUser, DeleteCard);
 
 // Collection Router
 Routers.get('/collection', GetAllCollection);

@@ -40,3 +40,14 @@ export async function GetMyCard(req, res){
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
+
+export async function DeleteCard(req, res){
+    let id = req.params.id;
+    if(id === null) return res.status(400).json({msg: 'Bad request', statusCode: 400});
+    try{
+        await Card.destroy({where: {id: id}});
+        res.status(200).json({msg: 'Delete Card Success', statusCode: 200});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+}
