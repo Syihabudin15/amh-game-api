@@ -2,7 +2,7 @@ import Express from "express";
 import Upload from "../Configs/MulterConfig.js";
 import { BuyFromAdmin, BuyHero, CancelSell, CreateHero, 
         SearchByLevel, GetAllHero, GetHeroById, 
-        SellHero, SendHero } from '../Services/HeroService.js';
+        SellHero, SendHero, SearchByPrice, SearchByCollection } from '../Services/HeroService.js';
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
 import { GetAllDeposit, GetAllSendBalance, GetAllWithdraw, GetMyWallet } from "../Services/WalletService.js";
@@ -13,6 +13,7 @@ import { RequestOtp, VerifyOtp } from "../Services/VerifyService.js";
 import { DepositViaEwallet, GetWithdrawPaymentMethod, WithdrawRequest, WithdrawVerify } from "../Services/PaymentService.js";
 import { DepositAwaitingCapture, DepositCaptureFailure, DepositCaptureSuccess, DepositFailureCallback, DepositPendingCallback, 
         DepositSuccessCallback, WithdrawCallback } from "../Services/HandleCallback.js";
+import { CreateCollection, GetAllCollection, GetAllCollectionHero, SearchByName } from "../Services/CollectionService.js";
 
 const Routers = Express.Router();
 
@@ -59,10 +60,17 @@ Routers.post('/user/play/:myHeroId', JwtVerifyUser, PlayGame);
 Routers.post('/user/card', JwtVerifyUser, CreateCard);
 Routers.get('/user/card', JwtVerifyUser, GetMyCard);
 
+// Collection Router
+Routers.get('/collection', GetAllCollection);
+Routers.get('/collection/heroes', GetAllCollectionHero);
+Routers.get('/collection/find', SearchByName);
+
 // Hero Router
 Routers.get('/hero-detail/:id', GetHeroById);
 Routers.get('/heroes', GetAllHero);
-Routers.get('/heroes/find', SearchByLevel);
+Routers.get('/heroes/level', SearchByLevel);
+Routers.get('/heroes/price', SearchByPrice);
+Routers.get('/heroes/collection', SearchByCollection);
 
 // Market Route
 Routers.post('/market/buy', JwtVerifyUser, BuyFromAdmin);
@@ -72,6 +80,7 @@ Routers.post('/marketplace/sell/cancel/:myHeroId', JwtVerifyUser, CancelSell);
 
 // Admin Router
 Routers.post('/admin/create-hero', JwtVerifyAdmin, Upload.single('img'), CreateHero);
+Routers.post('/admin/collection', JwtVerifyAdmin, Upload.single('img'), CreateCollection);
 Routers.post('/admin/sign-up', SignUpAdmin);
 Routers.post('/admin/sign-in', SignIn);
 

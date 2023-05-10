@@ -1,16 +1,17 @@
 import Hero from '../Entities/Markets/Hero.js';
 import MyHero from '../Entities/Users/MyHero.js';
-import { DB } from '../Configs/DbConfig.js';
+import { DB, Op } from '../Configs/DbConfig.js';
 import { Jwt, secret } from '../Configs/JwtConfigs.js';
 import Market from '../Entities/Markets/Market.js';
 import HeroTransaction from '../Entities/Transactions/HeroTransaction.js';
 import Wallet from '../Entities/Users/Wallet.js';
 import User from '../Entities/Users/User.js';
 import Credential from '../Entities/Users/Credential.js';
+import Collection from '../Entities/Markets/Collection.js';
 
 
 export async function CreateHero(req, res){
-    let {level, supply, power, max_point, default_price} = req.body;
+    let {level, supply, power, max_point, default_price, collection_id} = req.body;
     let img = req.file.filename;
 
     if(level === null || power < 1 || max_point < 100 || default_price === null){
@@ -18,7 +19,8 @@ export async function CreateHero(req, res){
     }
     try{
         let result = await Hero.create(
-            {level: level, supply: supply, power: power, max_point: max_point, img: img, stock: supply, default_price: default_price}
+            {level: level, supply: supply, power: power, max_point: max_point, img: img, stock: supply, 
+            default_price: default_price, mCollectionId: collection_id}
         );
         res.status(201).json({msg: 'create Hero suceess', statusCode: 201, data: result});
     }catch(err){
@@ -28,7 +30,7 @@ export async function CreateHero(req, res){
 
 export async function GetHeroById(req, res){
     try{
-        let result = await Hero.findOne({where: {id: req.params.id}});
+        let result = await Hero.findOne({where: {id: req.params.id}, include: [{model: Collection}]});
         if(result == null) return res.status(404).json({msg: 'Hero not found', statusCode: 404});
         res.status(200).json({msg: 'get Hero success', statusCode: 200, data: result});
     }catch(err){
@@ -37,11 +39,12 @@ export async function GetHeroById(req, res){
 };
 
 export async function GetAllHero(req, res){
-    let {page, size} = req.query;
+    let page = req.query.page || 0;
+    let size = req.query.size || 10;
     try{
         let skip = parseInt(page) * parseInt(size);
         let result = await Hero.findAndCountAll({
-            limit: 5,
+            limit: parseInt(size),
             offset: skip
         });
         res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
@@ -51,12 +54,14 @@ export async function GetAllHero(req, res){
 };
 
 export async function SearchByLevel(req, res){
-    let {page, size, level} = req.query;
+    let level = req.query.level || 0;
+    let page = req.query.page || 0;
+    let size = req.query.size || 10;
     try{
         let skip = parseInt(page) * parseInt(size);
         let result = await Hero.findAndCountAll({
             where: {level: level},
-            limit: 5,
+            limit: parseInt(size),
             offset: skip
         });
         res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
@@ -65,6 +70,54 @@ export async function SearchByLevel(req, res){
     }
 };
 
+export async function SearchByPrice(req, res){
+    let min = req.query.min || 0;
+    let max = req.query.max || 100000000;
+    let page = req.query.page || 0;
+    let size = req.query.size || 10;
+    try{
+        let skip = parseInt(page) * parseInt(size);
+        let result = await Market.findAndCountAll({
+            where: {price: {
+                [Op.between]: [parseInt(min), parseInt(max)]
+            }},
+            limit: parseInt(size),
+            offset: skip,
+            include:[{model: MyHero}]
+        });
+        res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function SearchByCollection(req, res){
+    let page = req.query.page || 0;
+    let size = req.query.size || 10;
+    let name = req.query.name;
+    try{
+        let skip = parseInt(page) * parseInt(size);
+        let result = await Market.findAndCountAll({
+            limit: parseInt(size),
+            offset: skip,
+            include: [{
+                model: MyHero,
+                include: [{
+                    model: Hero,
+                    include: [{
+                        model: Collection,
+                        where: {name: {
+                            [Op.like]: `%${name}`
+                        }}
+                    }]
+                }]
+            }]
+        });
+        res.status(200).json({msg: 'Search by Collection Name success', statusCode: 200, data: result});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
 
 export async function SendHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);

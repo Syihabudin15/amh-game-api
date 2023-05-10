@@ -1,4 +1,5 @@
 import { DB, DataTypes } from "../../Configs/DbConfig.js";
+import Collection from "./Collection.js";
 
 const Hero = DB.define('m_hero', {
     id: {type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true},
@@ -11,6 +12,8 @@ const Hero = DB.define('m_hero', {
     default_price: {type: DataTypes.BIGINT, allowNull: false}
 }, {createdAt: false, updatedAt: false});
 
+Hero.belongsTo(Collection);
+Collection.hasMany(Hero);
 
 await Hero.sync();
 export default Hero;

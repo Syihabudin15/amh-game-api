@@ -3,12 +3,16 @@ import MyHero from "../Entities/Users/MyHero.js";
 import User from "../Entities/Users/User.js";
 import Wallet from '../Entities/Users/Wallet.js';
 import { Jwt, secret } from '../Configs/JwtConfigs.js';
-import { DB } from "../Configs/DbConfig.js";
+import { DB, Op } from "../Configs/DbConfig.js";
 
 
 export async function BonusSignUp(user){
     try{
-        let heroFree = await Hero.findOne({where: {level: 0}});
+        let heroFree = await Hero.findOne({where: {
+            [Op.and]: [
+                {level: 0},{mCollectionId : 'AMH Drawing'}
+            ]
+        }});
         await MyHero.create({mUserId: user, mHeroId: heroFree.id});
     }catch(err){
         throw new Error(err.message);
