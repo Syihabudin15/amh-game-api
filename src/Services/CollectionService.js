@@ -40,10 +40,12 @@ export async function GetAllCollectionHero(req, res){
     try{
         let skip = parseInt(page) * parseInt(size);
         let result = await Collection.findAndCountAll({
-            where: {id: id},
-            limit: parseInt(size),
-            offset: skip,
-            include: [{model: Hero}]
+            where: {id : id},
+            include: [{
+                model: Collection,
+                limit: size,
+                offset: skip
+            }]
         });
         res.status(200).json({msg: 'get collection hero success', statusCode: 200, data: result});
     }catch(err){
