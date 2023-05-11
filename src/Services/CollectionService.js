@@ -19,10 +19,10 @@ export async function CreateCollection(req, res){
 };
 
 export async function GetAllCollection(req, res){
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Collection.findAndCountAll({
             limit: parseInt(size),
             offset: skip
@@ -34,11 +34,11 @@ export async function GetAllCollection(req, res){
 };
 
 export async function GetAllCollectionHero(req, res){
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     let id = req.query.id;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Hero.findAndCountAll({
             limit: parseInt(size),
             offset: skip,
@@ -54,11 +54,11 @@ export async function GetAllCollectionHero(req, res){
 };
 
 export async function SearchByName(req, res){
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     let name = req.query.name;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Collection.findAndCountAll({
             where: {name: {
                 [Op.like]: `%${name}%`

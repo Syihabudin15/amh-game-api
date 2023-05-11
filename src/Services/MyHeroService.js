@@ -10,7 +10,7 @@ export async function BonusSignUp(user){
     try{
         let heroFree = await Hero.findOne({where: {
             [Op.and]: [
-                {level: 0},{mCollectionId : 'AMH Drawing'}
+                {level: 0},{stock : 0}
             ]
         }});
         await MyHero.create({mUserId: user, mHeroId: heroFree.id});

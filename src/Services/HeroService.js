@@ -39,10 +39,10 @@ export async function GetHeroById(req, res){
 };
 
 export async function GetAllHero(req, res){
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Hero.findAndCountAll({
             limit: parseInt(size),
             offset: skip
@@ -54,10 +54,10 @@ export async function GetAllHero(req, res){
 };
 
 export async function GetAllMarketplace(req, res){
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
             where: {is_sold: false},
             limit: parseInt(size),
@@ -77,10 +77,10 @@ export async function GetAllMarketplace(req, res){
 
 export async function SearchByLevel(req, res){
     let level = req.query.level || 0;
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
             where: {
                 is_sold: false
@@ -104,10 +104,10 @@ export async function SearchByLevel(req, res){
 export async function SearchByPrice(req, res){
     let min = req.query.min || 0;
     let max = req.query.max || 100000000;
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
             where: {
                 price: {
@@ -126,11 +126,11 @@ export async function SearchByPrice(req, res){
 };
 
 export async function SeachHeroesByCollectionName(req, res){
-    let page = req.query.page || 0;
+    let page = req.query.page || 1;
     let size = req.query.size || 10;
     let name = req.query.name;
     try{
-        let skip = parseInt(page) * parseInt(size);
+        let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
             where: {is_sold: false},
             limit: parseInt(size),
