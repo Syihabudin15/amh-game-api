@@ -12,9 +12,9 @@ import Collection from '../Entities/Markets/Collection.js';
 
 export async function CreateHero(req, res){
     let {level, supply, power, max_point, default_price, collection_id} = req.body;
-    let img = req.file.filename;
+    let img = req.file? req.file.filename : '';
 
-    if(level === null || power < 1 || max_point < 100 || default_price === null){
+    if(level === null || power < 1 || max_point < 100 || default_price === null || img === ''){
         return res.status(400).json({msg: 'Bad request. level, supply, power, max_point, default_price', statusCode: 400});
     }
     try{
@@ -53,16 +53,47 @@ export async function GetAllHero(req, res){
     }
 };
 
+export async function GetAllMarketplace(req, res){
+    let page = req.query.page || 0;
+    let size = req.query.size || 10;
+    try{
+        let skip = parseInt(page) * parseInt(size);
+        let result = await Market.findAndCountAll({
+            where: {is_sold: false},
+            limit: parseInt(size),
+            offset: skip,
+            include:[{
+                model: MyHero,
+                include: [{
+                    model: Hero
+                }]
+            }]
+        });
+        res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
 export async function SearchByLevel(req, res){
     let level = req.query.level || 0;
     let page = req.query.page || 0;
     let size = req.query.size || 10;
     try{
         let skip = parseInt(page) * parseInt(size);
-        let result = await Hero.findAndCountAll({
-            where: {level: level},
+        let result = await Market.findAndCountAll({
+            where: {
+                is_sold: false
+            },
             limit: parseInt(size),
-            offset: skip
+            offset: skip,
+            include: [{
+                model: MyHero,
+                include: [{
+                    model: Hero,
+                    where: {level: parseInt(level)}
+                }]
+            }]
         });
         res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
     }catch(err){
@@ -78,9 +109,12 @@ export async function SearchByPrice(req, res){
     try{
         let skip = parseInt(page) * parseInt(size);
         let result = await Market.findAndCountAll({
-            where: {price: {
-                [Op.between]: [parseInt(min), parseInt(max)]
-            }},
+            where: {
+                price: {
+                    [Op.between]: [parseInt(min), parseInt(max)]
+                },
+                is_sold: false
+            },
             limit: parseInt(size),
             offset: skip,
             include:[{model: MyHero}]
@@ -91,13 +125,14 @@ export async function SearchByPrice(req, res){
     }
 };
 
-export async function SearchByCollection(req, res){
+export async function SeachHeroesByCollectionName(req, res){
     let page = req.query.page || 0;
     let size = req.query.size || 10;
     let name = req.query.name;
     try{
         let skip = parseInt(page) * parseInt(size);
         let result = await Market.findAndCountAll({
+            where: {is_sold: false},
             limit: parseInt(size),
             offset: skip,
             include: [{
@@ -106,14 +141,16 @@ export async function SearchByCollection(req, res){
                     model: Hero,
                     include: [{
                         model: Collection,
-                        where: {name: {
-                            [Op.like]: `%${name}`
-                        }}
+                        where: {
+                            name: {
+                                [Op.substring]: name
+                            }
+                        }
                     }]
                 }]
             }]
         });
-        res.status(200).json({msg: 'Search by Collection Name success', statusCode: 200, data: result});
+        res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});
     }

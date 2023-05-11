@@ -4,9 +4,9 @@ import Hero from "../Entities/Markets/Hero.js";
 
 export async function CreateCollection(req, res){
     let {name, description} = req.body;
-    let img = req.file.filename;
+    let img = req.file? req.file.filename : '';
     const t = await DB.transaction();
-    if(name === null || description === null) return res.status(400).json({msg: 'Bad Request. name, description, img', statusCode: 400});
+    if(name === null || description === null || img === '') return res.status(400).json({msg: 'Bad Request. name, description, img', statusCode: 400});
 
     try{
         let result = await Collection.create({img: img, name: name, description: description});
@@ -24,7 +24,7 @@ export async function GetAllCollection(req, res){
     try{
         let skip = parseInt(page) * parseInt(size);
         let result = await Collection.findAndCountAll({
-            limit: size,
+            limit: parseInt(size),
             offset: skip
         });
         res.status(200).json({msg: 'get all Collection success', statusCode: 200, data: result});
@@ -39,12 +39,12 @@ export async function GetAllCollectionHero(req, res){
     let id = req.query.id;
     try{
         let skip = parseInt(page) * parseInt(size);
-        let result = await Collection.findAndCountAll({
-            where: {id : id},
+        let result = await Hero.findAndCountAll({
+            limit: parseInt(size),
+            offset: skip,
             include: [{
                 model: Collection,
-                limit: size,
-                offset: skip
+                where: {id: id}
             }]
         });
         res.status(200).json({msg: 'get collection hero success', statusCode: 200, data: result});
@@ -61,7 +61,7 @@ export async function SearchByName(req, res){
         let skip = parseInt(page) * parseInt(size);
         let result = await Collection.findAndCountAll({
             where: {name: {
-                [Op.like]: `%${name}`
+                [Op.like]: `%${name}%`
             }},
             limit: parseInt(size),
             offset: skip

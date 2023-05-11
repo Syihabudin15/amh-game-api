@@ -2,7 +2,7 @@ import Express from "express";
 import Upload from "../Configs/MulterConfig.js";
 import { BuyFromAdmin, BuyHero, CancelSell, CreateHero, 
         SearchByLevel, GetAllHero, GetHeroById, 
-        SellHero, SendHero, SearchByPrice, SearchByCollection } from '../Services/HeroService.js';
+        SellHero, SendHero, SearchByPrice, SeachHeroesByCollectionName, GetAllMarketplace } from '../Services/HeroService.js';
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
 import { GetAllDeposit, GetAllSendBalance, GetAllWithdraw, GetMyWallet } from "../Services/WalletService.js";
@@ -69,15 +69,17 @@ Routers.get('/collection/find', SearchByName);
 // Hero Router
 Routers.get('/hero-detail/:id', GetHeroById);
 Routers.get('/heroes', GetAllHero);
-Routers.get('/heroes/level', SearchByLevel);
-Routers.get('/heroes/price', SearchByPrice);
-Routers.get('/heroes/collection', SearchByCollection);
+
 
 // Market Route
 Routers.post('/market/buy', JwtVerifyUser, BuyFromAdmin);
 Routers.post('/marketplace/sell', JwtVerifyUser, SellHero);
 Routers.post('/marketplace/buy/:marketId', JwtVerifyUser, BuyHero);
 Routers.post('/marketplace/sell/cancel/:myHeroId', JwtVerifyUser, CancelSell);
+Routers.get('/marketplace/heroes/collection', SeachHeroesByCollectionName);
+Routers.get('/marketplace/heroes/level', SearchByLevel);
+Routers.get('/marketplace/heroes/price', SearchByPrice);
+Routers.get('/marketplace/heroes', GetAllMarketplace);
 
 // Admin Router
 Routers.post('/admin/create-hero', JwtVerifyAdmin, Upload.single('img'), CreateHero);
