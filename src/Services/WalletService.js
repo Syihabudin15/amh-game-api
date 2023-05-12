@@ -32,6 +32,7 @@ export async function SendBalance(req, res){
         if(myWallet === null) return res.status(404).json({msg: 'Youre Wallet is not found', statusCode: 404});
         if(walletTarget === null) return res.status(404).json({msg: 'Wallet target is not found', statusCode: 404});
         if(myWallet.balance <= parseInt(parseInt(amount)+200)) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+        if(myWallet.mUserId === walletTarget.mUserId) return res.status(403).json({msg: 'Cannot send to your wallet', statusCode: 403});
 
         walletTarget.balance += parseInt(amount);
         myWallet.balance -+ parseInt(parseInt(amount)+200);
