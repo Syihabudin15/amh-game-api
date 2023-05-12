@@ -40,8 +40,7 @@ export async function DepositViaEwallet(req, res){
                         channel_code: codeBank,
                         channel_properties: {
                             success_return_url: `https://amh-coin.netlify.app/user/deposit/success`,
-                            failure_return_url: 'https://amh-coin.netlify.app/user/deposit/failure',
-                            mobile_number: user.phone
+                            failure_return_url: 'https://amh-coin.netlify.app/user/deposit/failure'
                         }
                     },
                     reusability: 'ONE_TIME_USE'
@@ -56,7 +55,7 @@ export async function DepositViaEwallet(req, res){
 
         res.status(201).json({msg: 'Create deposit success', statusCode: 201, data: request.data});
     }catch(err){
-        return res.status(500).json({msg: err.message, statusCode: 500});
+        return res.status(err.status).json({msg: err.message, statusCode: err.status});
     }
 };
 
