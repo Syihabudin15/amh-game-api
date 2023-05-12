@@ -37,7 +37,7 @@ export async function SendBalance(req, res){
         walletTarget.balance += parseInt(amount);
         myWallet.balance -+ parseInt(parseInt(amount)+200);
         let send = await WalletTransaction.create({
-            to: walletTarget.no_wallet, type: 'send', amount: parseInt(amount), is_paid: true, mWalletId: myWallet.id, status: 'success'
+            to: walletTarget.no_wallet, type: 'send', amount: parseInt(amount), is_paid: true, mWalletId: myWallet.id, status: 'SUCCEEDED'
         }, {t});
         await walletTarget.save();
         await myWallet.save();

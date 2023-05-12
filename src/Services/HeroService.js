@@ -234,10 +234,11 @@ export async function BuyHero(req, res){
         if(findMarket === null) return res.status(404).json({msg: 'Market not found', statusCode: 404});
         if(findMarket.is_sold === true) return res.status(403).json({msg: 'Hero has sold out', statusCode: 403});
         if(buyer.balance < findMarket.price) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
+        if(buyer.mUserId === seller.mUserId) return res.status(403).json({msg: 'Cannot buy youre hero'});
         
         findMarket.is_sold = true;
         buyer.balance -= findMarket.price;
-        seller.balance += findMarket.price;
+        seller.balance += parseInt(findMarket.price - 2000);
         let result = await MyHero.update({
             mUserId: token.id,
             is_trade: false
