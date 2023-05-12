@@ -56,7 +56,7 @@ export async function DepositViaEwallet(req, res){
 
         res.status(201).json({msg: 'Create deposit success', statusCode: 201, data: request.data});
     }catch(err){
-        return res.status(err.status).json({msg: err.message, statusCode: err.status});
+        return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
 
