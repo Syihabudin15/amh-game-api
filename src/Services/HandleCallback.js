@@ -25,9 +25,11 @@ export async function DepositSuccessCallback(req, res){
             code_bank: data.data.metadata.code_bank,
             amount: data.data.amount,
             status: data.data.status,
-            is_paid: false,
+            is_paid: true,
             mWalletId: wallet.id
         },{t});
+        wallet.balance += data.data.amount;
+        await wallet.save();
 
         t.commit();
         res.status(201).json({msg: "Deposit Success", statusCode: 201, data: result});
