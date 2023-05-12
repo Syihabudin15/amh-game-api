@@ -5,20 +5,14 @@ import { Jwt, secret } from '../Configs/JwtConfigs.js';
 export async function CreateCard(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     let {name, no_card} = req.body;
+    const t = await DB.transaction();
 
     if(name === null || no_card === null){
         return res.status(400).json({msg: 'Bad request. name, no_card', statusCode: 400});
     }
-    const t = await DB.transaction();
-    
     try{
         let find = await Card.findOne({
-            where: {
-                [Op.and]: [
-                    {name: name},
-                    {no_card: no_card}
-                ]
-            }
+            where: {name: name, no_card: no_card}
         });
         if(find) return res.status(400).json({msg: 'You are alredy have that Card', statusCode: 400});
         let result = await Card.create({name: name, no_card: no_card, mUserId: token.id}, {t});
