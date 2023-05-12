@@ -9,7 +9,7 @@ export async function CreateCollection(req, res){
     if(name === null || description === null || img === '') return res.status(400).json({msg: 'Bad Request. name, description, img', statusCode: 400});
 
     try{
-        let result = await Collection.create({img: img, name: name, description: description});
+        let result = await Collection.create({img: img, name: name, description: description},{t});
         t.commit();
         res.status(201).json({msg: 'Create Collection success', statusCode: 201, data: result});
     }catch(err){

@@ -13,6 +13,7 @@ import Collection from '../Entities/Markets/Collection.js';
 export async function CreateHero(req, res){
     let {level, supply, power, max_point, default_price, collection_id} = req.body;
     let img = req.file? req.file.filename : '';
+    const t = await DB.transaction();
 
     if(level === null || power < 1 || max_point < 100 || default_price === null || img === ''){
         return res.status(400).json({msg: 'Bad request. level, supply, power, max_point, default_price', statusCode: 400});
@@ -20,10 +21,12 @@ export async function CreateHero(req, res){
     try{
         let result = await Hero.create(
             {level: level, supply: supply, power: power, max_point: max_point, img: img, stock: supply, 
-            default_price: default_price, mCollectionId: collection_id}
+            default_price: default_price, mCollectionId: collection_id}, {t}
         );
+        t.commit();
         res.status(201).json({msg: 'create Hero suceess', statusCode: 201, data: result});
     }catch(err){
+        t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
