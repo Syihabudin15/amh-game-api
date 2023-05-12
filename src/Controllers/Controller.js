@@ -5,7 +5,7 @@ import { BuyFromAdmin, BuyHero, CancelSell, CreateHero,
         SellHero, SendHero, SearchByPrice, SeachHeroesByCollectionName, GetAllMarketplace } from '../Services/HeroService.js';
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
-import { GetAllDeposit, GetAllSendBalance, GetAllWithdraw, GetMyWallet } from "../Services/WalletService.js";
+import { GetAllDeposit, GetAllReceiveBalance, GetAllSendBalance, GetAllWithdraw, GetMyWallet } from "../Services/WalletService.js";
 import { CombineHero, GetMyHero, PlayGame } from "../Services/MyHeroService.js";
 import { CreateCard, DeleteCard, GetMyCard } from "../Services/CardService.js";
 import { JwtVerifyUser, JwtVerifyAdmin } from "../Configs/JwtConfigs.js";
@@ -32,6 +32,7 @@ Routers.post('/user/verify', JwtVerifyUser, VerifyOtp);
 // Wallet Router
 Routers.get('/user/wallet', JwtVerifyUser, GetMyWallet);
 Routers.get('/user/wallet/history-send', JwtVerifyUser, GetAllSendBalance);
+Routers.get('/user/wallet/history-receive', JwtVerifyUser, GetAllReceiveBalance);
 Routers.get('/user/wallet/history-withdraw', JwtVerifyUser, GetAllWithdraw);
 Routers.get('/user/wallet/history-deposit', JwtVerifyUser, GetAllDeposit);
 

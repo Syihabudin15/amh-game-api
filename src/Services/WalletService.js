@@ -53,15 +53,25 @@ export async function GetAllSendBalance(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
     try{
         let wallet = await Wallet.findOne({where: {mUserId: token.id}});
-
-        let receive = await WalletTransaction.findAll({where: {[Op.and]: [{to: wallet.no_wallet}, {type: 'send'}]}});
         let send = await WalletTransaction.findAll({where: {[Op.and]: [{mWalletId : wallet.id}, {type: 'send'}]}});
 
-        res.status(200).json({msg: 'Success get all Send Balance', statusCode: 200, data: {receive, send}});
+        res.status(200).json({msg: 'Success get all Send Balance', statusCode: 200, data: send});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
 };
+
+export async function GetAllReceiveBalance(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    try{
+        let wallet = await Wallet.findOne({where: {mUserId: token.id}});
+        let receive = await WalletTransaction.findAll({where: {[Op.and]: [{to: wallet.no_wallet}, {type: 'send'}]}});
+
+        res.status(200).json({msg: 'Success get all Send Balance', statusCode: 200, data: receive});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+}
 
 export async function GetAllDeposit(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
