@@ -35,7 +35,7 @@ export async function SendBalance(req, res){
         if(myWallet.mUserId === walletTarget.mUserId) return res.status(403).json({msg: 'Cannot send to your wallet', statusCode: 403});
 
         walletTarget.balance += parseInt(amount);
-        myWallet.balance -= parseInt(parseInt(amount)+200);
+        myWallet.balance -= parseInt(parseInt(amount)+500);
         let send = await WalletTransaction.create({
             to: walletTarget.no_wallet, type: 'send', amount: parseInt(amount), is_paid: true, mWalletId: myWallet.id, status: 'SUCCEEDED'
         }, {t});

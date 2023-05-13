@@ -72,15 +72,15 @@ export async function GetAllHistoryMyHero(req, res){
     let size = req.query.size || 10;
     let skip = parseInt(parseInt(page) -1) * parseInt(size);
     try{
-        let result = await HeroTransaction.findAndCountAll({
-            where: {
-                [Op.or]: [
-                    {receiver: token.id},{mUserId: token.id}
-                ]
-            },
+        let result = await MyHero.findAndCountAll({
+            where: {mUserId: token.id},
             limit: parseInt(size),
             offset: skip,
-            include: [{model: Hero}]
+            include: [{
+                model: Hero,
+            },{
+                model: HeroTransaction
+            }]
         });
         res.status(200).json({msg: 'get all history my wallet success', statusCode: 200, data: result});
     }catch(err){

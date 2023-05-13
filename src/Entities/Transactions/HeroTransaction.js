@@ -10,7 +10,9 @@ const HeroTransaction = DB.define('t_hero_transaction', {
 
 HeroTransaction.belongsTo(MyHero);
 MyHero.hasMany(HeroTransaction);
+
 HeroTransaction.belongsTo(User);
+User.hasMany(HeroTransaction);
 
 await HeroTransaction.sync();
 export default HeroTransaction;
