@@ -9,8 +9,10 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const base = process.env.BASE || 'http://localhost:3000';
+
 const corsOrigin ={
-    origin:'https://amh-coin.netlify.app', //or whatever port your frontend is using
+    origin: base, //or whatever port your frontend is using
     credentials:true,            
     optionSuccessStatus:200
 }
