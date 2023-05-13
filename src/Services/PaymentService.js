@@ -39,8 +39,9 @@ export async function DepositViaEwallet(req, res){
                     ewallet: {
                         channel_code: codeBank,
                         channel_properties: {
-                            success_return_url: `https://amh-coin.netlify.app/user/deposit/success`,
-                            failure_return_url: 'https://amh-coin.netlify.app/user/deposit/failure'
+                            success_return_url: `https://amh-coin.netlify.app`,
+                            failure_return_url: 'https://amh-coin.netlify.app',
+                            mobile_phone: user.phone
                         }
                     },
                     reusability: 'ONE_TIME_USE'

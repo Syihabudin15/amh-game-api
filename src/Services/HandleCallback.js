@@ -28,7 +28,7 @@ export async function DepositSuccessCallback(req, res){
             is_paid: true,
             mWalletId: wallet.id
         },{t});
-        wallet.balance += data.data.amount;
+        wallet.balance += result.amount;
         await wallet.save();
 
         t.commit();

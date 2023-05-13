@@ -21,10 +21,42 @@ export async function BonusSignUp(user){
 
 export async function GetMyHero(req, res){
     let token = Jwt.decode(req.header('auth-token'), secret);
-    
+    let page = req.query.page || 1;
+    let size = req.query.size || 10;
+
+    let skip = parseInt(parseInt(page) -1) * parseInt(size);
     try{
-        let result = await MyHero.findAll({
-            where: {mUserId: token.id},
+        let result = await MyHero.findAndCountAll({
+            where: {
+                [Op.and]: [
+                    {mUserId: token.id}, {is_trade: false}
+                ]
+            },
+            limit: size,
+            offset: skip,
+            include: [{model: Hero}]
+        });
+        res.status(200).json({msg: 'get all My Hero success', statusCode: 200, data: result});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function MyHeroInListing(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    let page = req.query.page || 1;
+    let size = req.query.size || 10;
+
+    let skip = parseInt(parseInt(page) -1) * parseInt(size);
+    try{
+        let result = await MyHero.findAndCountAll({
+            where: {
+                [Op.and]: [
+                    {mUserId: token.id},{is_trade: true}
+                ]
+            },
+            limit: size,
+            offset: skip,
             include: [{model: Hero}]
         });
         res.status(200).json({msg: 'get all My Hero success', statusCode: 200, data: result});

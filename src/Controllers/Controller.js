@@ -6,7 +6,7 @@ import { BuyFromAdmin, BuyHero, CancelSell, CreateHero,
 import { SignUpUser, SignIn, SignUpAdmin } from '../Services/AuthService.js';
 import { UpdateUser, GetMySelf } from '../Services/UserService.js';
 import { GetAllDeposit, GetAllReceiveBalance, GetAllSendBalance, GetAllWithdraw, GetMyWallet, SendBalance } from "../Services/WalletService.js";
-import { CombineHero, GetMyHero, PlayGame } from "../Services/MyHeroService.js";
+import { CombineHero, GetMyHero, MyHeroInListing, PlayGame } from "../Services/MyHeroService.js";
 import { CreateCard, DeleteCard, GetMyCard } from "../Services/CardService.js";
 import { JwtVerifyUser, JwtVerifyAdmin } from "../Configs/JwtConfigs.js";
 import { RequestOtp, VerifyOtp } from "../Services/VerifyService.js";
@@ -53,7 +53,8 @@ Routers.post('/deposit/callback/capture-success', DepositCaptureSuccess);
 Routers.post('/withdraw/callback', WithdrawCallback);
 
 // My Hero Router
-Routers.get('/user/my-hero', JwtVerifyUser, GetMyHero);
+Routers.get('/user/my-hero/all', JwtVerifyUser, GetMyHero);
+Routers.get('/user/my-hero/listing', JwtVerifyUser, MyHeroInListing);
 Routers.post('/user/my-hero/send', JwtVerifyUser, SendHero);
 Routers.get('/user/my-hero/combine', JwtVerifyUser, CombineHero);
 Routers.post('/user/play/:myHeroId', JwtVerifyUser, PlayGame);
