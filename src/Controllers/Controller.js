@@ -14,6 +14,7 @@ import { DepositViaEwallet, GetWithdrawPaymentMethod, WithdrawRequest, WithdrawV
 import { DepositAwaitingCapture, DepositCaptureFailure, DepositCaptureSuccess, DepositFailureCallback, DepositPendingCallback, 
         DepositSuccessCallback, WithdrawCallback } from "../Services/HandleCallback.js";
 import { CreateCollection, GetAllCollection, GetAllCollectionHero, SearchByName } from "../Services/CollectionService.js";
+import { GetAllHistoryMyHero } from "../Services/MyHeroService.js";
 
 const Routers = Express.Router();
 
@@ -55,6 +56,7 @@ Routers.post('/withdraw/callback', WithdrawCallback);
 // My Hero Router
 Routers.get('/user/my-hero/all', JwtVerifyUser, GetMyHero);
 Routers.get('/user/my-hero/listing', JwtVerifyUser, MyHeroInListing);
+Routers.get('/user/my-hero/history', JwtVerifyUser, GetAllHistoryMyHero);
 Routers.post('/user/my-hero/send', JwtVerifyUser, SendHero);
 Routers.get('/user/my-hero/combine', JwtVerifyUser, CombineHero);
 Routers.post('/user/play/:myHeroId', JwtVerifyUser, PlayGame);

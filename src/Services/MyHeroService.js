@@ -4,6 +4,7 @@ import User from "../Entities/Users/User.js";
 import Wallet from '../Entities/Users/Wallet.js';
 import { Jwt, secret } from '../Configs/JwtConfigs.js';
 import { DB, Op } from "../Configs/DbConfig.js";
+import HeroTransaction from '../Entities/Transactions/HeroTransaction.js';
 
 
 export async function BonusSignUp(user){
@@ -32,7 +33,7 @@ export async function GetMyHero(req, res){
                     {mUserId: token.id}, {is_trade: false}
                 ]
             },
-            limit: size,
+            limit: parseInt(size),
             offset: skip,
             include: [{model: Hero}]
         });
@@ -55,11 +56,33 @@ export async function MyHeroInListing(req, res){
                     {mUserId: token.id},{is_trade: true}
                 ]
             },
-            limit: size,
+            limit: parseInt(size),
             offset: skip,
             include: [{model: Hero}]
         });
         res.status(200).json({msg: 'get all My Hero success', statusCode: 200, data: result});
+    }catch(err){
+        return res.status(500).json({msg: err.message, statusCode: 500});
+    }
+};
+
+export async function GetAllHistoryMyHero(req, res){
+    let token = Jwt.decode(req.header('auth-token'), secret);
+    let page = req.query.page || 1;
+    let size = req.query.size || 10;
+    let skip = parseInt(parseInt(page) -1) * parseInt(size);
+    try{
+        let result = await HeroTransaction.findAndCountAll({
+            where: {
+                [Op.or]: [
+                    {receiver: token.id},{mUserId: token.id}
+                ]
+            },
+            limit: parseInt(size),
+            offset: skip,
+            include: [{model: Hero}]
+        });
+        res.status(200).json({msg: 'get all history my wallet success', statusCode: 200, data: result});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});
     }
