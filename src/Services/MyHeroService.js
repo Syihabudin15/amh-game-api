@@ -6,9 +6,10 @@ import { Jwt, secret } from '../Configs/JwtConfigs.js';
 import { DB, Op } from "../Configs/DbConfig.js";
 import HeroTransaction from '../Entities/Transactions/HeroTransaction.js';
 import Collection from "../Entities/Markets/Collection.js";
+import Credential from "../Entities/Users/Credential.js";
 
 
-export async function BonusSignUp(user){
+export async function BonusSignUp(user, email){
     try{
         let heroFree = await Hero.findOne({where: {
             [Op.and]: [
@@ -16,6 +17,7 @@ export async function BonusSignUp(user){
             ]
         }});
         await MyHero.create({mUserId: user, mHeroId: heroFree.id});
+        await HeroTransaction.create({type: 'BONUS', receiver: email, mUserId: null, mMyHeroId: heroFree.id});
     }catch(err){
         throw new Error(err.message);
     }
@@ -75,7 +77,7 @@ export async function GetAllHistoryMyHero(req, res){
     try{
         let user = await User.findOne({
             where: {id: token.id},
-            include: [{model: Credential,}]
+            include: [{model: Credential}]
         })
         let result = await HeroTransaction.findAndCountAll({
             where: {
