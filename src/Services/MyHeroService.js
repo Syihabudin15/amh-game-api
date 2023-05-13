@@ -9,7 +9,7 @@ import Collection from "../Entities/Markets/Collection.js";
 import Credential from "../Entities/Users/Credential.js";
 
 
-export async function BonusSignUp(user, email){
+export async function BonusSignUp(user){
     try{
         let heroFree = await Hero.findOne({where: {
             [Op.and]: [
@@ -17,7 +17,6 @@ export async function BonusSignUp(user, email){
             ]
         }});
         await MyHero.create({mUserId: user, mHeroId: heroFree.id});
-        await HeroTransaction.create({type: 'BONUS', receiver: email, mUserId: null, mMyHeroId: heroFree.id});
     }catch(err){
         throw new Error(err.message);
     }
