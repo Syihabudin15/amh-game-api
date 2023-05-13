@@ -178,7 +178,7 @@ export async function SendHero(req, res){
         if(myHero.mUserId !== token.id) return res.status(403).json({msg: 'Youre not allowed to send this Hero', statusCode: 403});
         if(target.id === token.id) return res.status(400).json({msg: 'Sorry youre input your email', statusCode: 400});
         
-        let trans = await HeroTransaction.create({type: 'send', receiver: target.id, mMyHeroId: myHeroId, mUserId: token.id}, {t});
+        let trans = await HeroTransaction.create({type: 'send', receiver: target.m_credential.email, mMyHeroId: myHeroId, mUserId: token.id}, {t});
         myHero.mUserId = target.id;
         
         await myHero.save();

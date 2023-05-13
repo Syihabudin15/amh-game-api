@@ -5,6 +5,7 @@ import Wallet from '../Entities/Users/Wallet.js';
 import { Jwt, secret } from '../Configs/JwtConfigs.js';
 import { DB, Op } from "../Configs/DbConfig.js";
 import HeroTransaction from '../Entities/Transactions/HeroTransaction.js';
+import Collection from "../Entities/Markets/Collection.js";
 
 
 export async function BonusSignUp(user){
@@ -35,7 +36,7 @@ export async function GetMyHero(req, res){
             },
             limit: parseInt(size),
             offset: skip,
-            include: [{model: Hero}]
+            include: [{model: Hero, include:[{model: Collection}]}]
         });
         res.status(200).json({msg: 'get all My Hero success', statusCode: 200, data: result});
     }catch(err){
@@ -58,7 +59,7 @@ export async function MyHeroInListing(req, res){
             },
             limit: parseInt(size),
             offset: skip,
-            include: [{model: Hero}]
+            include: [{model: Hero,include:[{model: Collection}]}]
         });
         res.status(200).json({msg: 'get all My Hero success', statusCode: 200, data: result});
     }catch(err){
@@ -72,16 +73,20 @@ export async function GetAllHistoryMyHero(req, res){
     let size = req.query.size || 10;
     let skip = parseInt(parseInt(page) -1) * parseInt(size);
     try{
-        let result = await MyHero.findAndCountAll({
-            where: {mUserId: token.id},
+        let user = await User.findOne({
+            where: {id: token.id},
+            include: [{model: Credential,}]
+        })
+        let result = await HeroTransaction.findAndCountAll({
+            where: {
+                [Op.or]: [
+                    {mUserId: token.id},
+                    {receiver: user.m_credential.email}
+                ]
+            },
             limit: parseInt(size),
-            offset: skip,
-            include: [{
-                model: Hero,
-            },{
-                model: HeroTransaction
-            }]
-        });
+            offset: skip
+        })
         res.status(200).json({msg: 'get all history my wallet success', statusCode: 200, data: result});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});
