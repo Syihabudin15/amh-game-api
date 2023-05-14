@@ -178,7 +178,7 @@ export async function SendHero(req, res){
         if(target === null) return res.status(404).json({msg: 'Email target is not found', statusCode: 404});
         if(myHero.is_trade === true) return res.status(403).json({msg: 'Sorry. Your Hero is in listing', statusCode: 403});
         if(myHero.mUserId !== token.id) return res.status(403).json({msg: 'Youre not allowed to send this Hero', statusCode: 403});
-        if(target.id === token.id) return res.status(400).json({msg: 'Sorry youre input your email', statusCode: 400});
+        if(target.id === token.id) return res.status(400).json({msg: 'Sorry youre input your registered email', statusCode: 400});
         
         let trans = await HeroTransaction.create({type: 'send', receiver: target.m_credential.email, mMyHeroId: myHeroId, mUserId: token.id}, {t});
         myHero.mUserId = target.id;
@@ -205,7 +205,7 @@ export async function SellHero(req, res){
             }
         );
         if(findMyHero === null) return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
-        if(findMyHero.mUserId !== token.id) return res.status(403).json({msg: 'Youre not allowed to send this Hero', statusCode: 403});
+        if(findMyHero.mUserId !== token.id) return res.status(403).json({msg: 'Youre not allowed to sell this Hero', statusCode: 403});
         if(findMyHero.m_hero.level === 0) return res.status(400).json({msg: 'Hero level 0 cant sell', statusCode: 400});
         if(findMyHero.is_trade === true) return res.status(400).json({msg: 'Youre hero in listing', statusCode: 400});
         let minPrice = parseInt(findMyHero.m_hero.default_price - (findMyHero.m_hero.level * 5000));
@@ -281,6 +281,7 @@ export async function CancelSell(req, res){
 
         if(myHero === null) return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
         if(token.id !== myHero.mUserId) return res.status(403).json({msg: 'sorry its not youre Hero', statusCode: 403});
+        if(myHero.is_trade === false) return res.status(403).json({msg: 'You hero not in listing', statusCode: 403});
 
         myHero.is_trade = false;
         await Market.destroy({where: {mHeroId: myHeroId}},{t});
