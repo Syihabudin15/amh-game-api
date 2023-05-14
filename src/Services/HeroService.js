@@ -242,9 +242,17 @@ export async function BuyHero(req, res){
     const t = await DB.transaction();
 
     try{
-        let buyer = await Wallet.findOne({where: {mUserId: token.id}, include: [{model: Credential}]});
-        let findMarket = await Market.findOne({where: {id: marketId}, include: [{model: MyHero,include:[{model: Hero}]}]});
-        let seller = await Wallet.findOne({where: {mUserId: findMarket.m_my_heros.mUserId}});
+        let buyer = await Wallet.findOne({
+            where: {mUserId: token.id},
+            include: [{
+                model: User,
+                include: [{
+                    model: Credential
+                }]
+            }]
+        });
+        let findMarket = await Market.findOne({where: {id: marketId}, include: [{model: MyHero, as: 'm_my_hero',include:[{model: Hero}]}]});
+        let seller = await Wallet.findOne({where: {mUserId: findMarket.m_my_hero.mUserId}});
 
         if(findMarket === null) return res.status(404).json({msg: 'Market not found', statusCode: 404});
         if(findMarket.is_sold === true) return res.status(403).json({msg: 'Hero has sold out', statusCode: 403});
