@@ -87,7 +87,10 @@ export async function SearchByLevel(req, res){
         let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
             where: {
-                is_sold: false
+                [Op.and]: [
+                    {is_sold: false},
+                    {'$m_hero.level$': parseInt(level)}
+                ]
             },
             limit: parseInt(size),
             offset: skip,
@@ -95,7 +98,7 @@ export async function SearchByLevel(req, res){
                 model: MyHero,
                 include: [{
                     model: Hero,
-                    where: {level: parseInt(level)},
+                    as: 'm_hero',
                     include: [{
                         model: Collection
                     }]
@@ -147,7 +150,12 @@ export async function SeachHeroesByCollectionName(req, res){
     try{
         let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
-            where: {is_sold: false},
+            where: {
+                [Op.and]: [
+                    {is_sold: false},
+                    {'$m_collection.name$': name}
+                ]
+            },
             limit: parseInt(size),
             offset: skip,
             include: [{
@@ -156,11 +164,7 @@ export async function SeachHeroesByCollectionName(req, res){
                     model: Hero,
                     include: [{
                         model: Collection,
-                        where: {
-                            name: {
-                                [Op.substring]: name
-                            }
-                        }
+                        as: 'm_collection'
                     }]
                 }]
             }]
