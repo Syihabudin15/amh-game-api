@@ -305,7 +305,7 @@ export async function CancelSell(req, res){
         if(myHero.is_trade === false) return res.status(403).json({msg: 'You hero not in listing', statusCode: 403});
 
         myHero.is_trade = false;
-        await Market.destroy({where: {mHeroId: myHeroId}},{t});
+        await Market.destroy({where: {mMyHeroId: myHeroId}},{t});
         await myHero.save();
 
         t.commit();
