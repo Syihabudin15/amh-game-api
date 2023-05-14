@@ -68,7 +68,8 @@ export async function GetAllMarketplace(req, res){
             include:[{
                 model: MyHero,
                 include: [{
-                    model: Hero
+                    model: Hero,
+                    include: [{model: Collection}]
                 }]
             }]
         });
@@ -94,7 +95,8 @@ export async function SearchByLevel(req, res){
                 model: MyHero,
                 include: [{
                     model: Hero,
-                    where: {level: parseInt(level)}
+                    where: {level: parseInt(level)},
+                    include: [{model: Collection}]
                 }]
             }]
         });
@@ -120,7 +122,7 @@ export async function SearchByPrice(req, res){
             },
             limit: parseInt(size),
             offset: skip,
-            include:[{model: MyHero}]
+            include:[{model: MyHero, include:[{model: Collection}]}]
         });
         res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
     }catch(err){
