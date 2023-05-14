@@ -87,10 +87,8 @@ export async function SearchByLevel(req, res){
         let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
             where: {
-                [Op.and]: [
-                    {is_sold: false},
-                    {'$m_hero.level$': parseInt(level)}
-                ]
+                is_sold: false,
+                '$m_hero.level$': parseInt(level)
             },
             limit: parseInt(size),
             offset: skip,
@@ -151,10 +149,8 @@ export async function SeachHeroesByCollectionName(req, res){
         let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Market.findAndCountAll({
             where: {
-                [Op.and]: [
-                    {is_sold: false},
-                    {'$m_collection.name$': name}
-                ]
+                is_sold: false,
+                '$m_collection.name$': name
             },
             limit: parseInt(size),
             offset: skip,
