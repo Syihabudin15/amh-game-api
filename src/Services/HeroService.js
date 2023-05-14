@@ -151,7 +151,7 @@ export async function SeachHeroesByCollectionName(req, res){
         let result = await Market.findAndCountAll({
             where: {
                 is_sold: false,
-                '$m_my_hero.m_hero.m_collection.name$': {[Op.like]: name}
+                '$m_my_hero.m_hero.m_collection.name$': {[Op.like]: `%${name}%`}
             },
             limit: parseInt(size),
             offset: skip,
