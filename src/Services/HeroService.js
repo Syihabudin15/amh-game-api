@@ -80,7 +80,7 @@ export async function GetAllMarketplace(req, res){
 };
 
 export async function SearchByLevel(req, res){
-    let level = req.query.level || 0;
+    let level = req.query.level || 1;
     let page = req.query.page || 1;
     let size = req.query.size || 10;
     try{
@@ -96,7 +96,9 @@ export async function SearchByLevel(req, res){
                 include: [{
                     model: Hero,
                     where: {level: parseInt(level)},
-                    include: [{model: Collection}]
+                    include: [{
+                        model: Collection
+                    }]
                 }]
             }]
         });
@@ -122,7 +124,15 @@ export async function SearchByPrice(req, res){
             },
             limit: parseInt(size),
             offset: skip,
-            include:[{model: MyHero, include:[{model: Collection}]}]
+            include:[{
+                model: MyHero,
+                include:[{
+                    model: Hero,
+                    include:[{
+                        model: Collection
+                    }]
+                }]
+            }]
         });
         res.status(200).json({msg: 'get all Hero success', statusCode: 200, data: result});
     }catch(err){
