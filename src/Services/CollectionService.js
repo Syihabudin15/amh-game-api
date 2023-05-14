@@ -25,7 +25,10 @@ export async function GetAllCollection(req, res){
         let skip = parseInt(parseInt(page) -1) * parseInt(size);
         let result = await Collection.findAndCountAll({
             limit: parseInt(size),
-            offset: skip
+            offset: skip,
+            include: [{
+                model: Hero
+            }]
         });
         res.status(200).json({msg: 'get all Collection success', statusCode: 200, data: result});
     }catch(err){

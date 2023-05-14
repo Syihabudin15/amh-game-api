@@ -205,7 +205,7 @@ export async function SellHero(req, res){
         if(findMyHero === null) return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
         if(findMyHero.mUserId !== token.id) return res.status(403).json({msg: 'Youre not allowed to send this Hero', statusCode: 403});
         if(findMyHero.m_hero.level === 0) return res.status(400).json({msg: 'Hero level 0 cant sell', statusCode: 400});
-
+        if(findMyHero.is_trade === true) return res.status(400).json({msg: 'Youre hero in listing', statusCode: 400});
         let minPrice = parseInt(findMyHero.m_hero.default_price - (findMyHero.m_hero.level * 5000));
         if(price < minPrice) return res.status(400).json({msg: `price cannot lower than ${minPrice}`, statusCode: 400});
 
@@ -227,7 +227,7 @@ export async function BuyHero(req, res){
     const t = await DB.transaction();
 
     try{
-        let buyer = await Wallet.findOne({where: {mUserId: token.id}});
+        let buyer = await Wallet.findOne({where: {mUserId: token.id}, include: [{model: Credential}]});
         let findMarket = await Market.findOne({where: {id: marketId}, include: [{model: MyHero,include:[{model: Hero}]}]});
         let seller = await Wallet.findOne({where: {mUserId: findMarket.m_my_heros.mUserId}});
 
@@ -239,19 +239,25 @@ export async function BuyHero(req, res){
         findMarket.is_sold = true;
         buyer.balance -= findMarket.price;
         seller.balance += parseInt(findMarket.price - 2000);
+        let trans = await HeroTransaction.create({
+            type: 'trade',
+            receiver: buyer.m_credential.email,
+            myHeroId: findMarket.m_my_heros,
+            mUserId: findMarket.m_my_heros.mUserId
+        });
         let result = await MyHero.update({
             mUserId: token.id,
             is_trade: false
         },{where: {id: findMarket.mMyHeroId}});
+        
 
         if(result[0] == 1){
             
             await findMarket.save();
             await buyer.save();
             await seller.save();
-            await transHero.save();
             t.commit();
-            res.status(200).json({msg: 'Buy success', statusCode: 200, data: findMarket.m_my_heros});
+            res.status(200).json({msg: 'Buy success', statusCode: 200, data: findMarket.m_my_hero});
         }else if(result[0] == 0){
             return res.status(404).json({msg: 'My Hero not found', statusCode: 404});
         }else{
