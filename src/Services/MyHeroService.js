@@ -86,7 +86,13 @@ export async function GetAllHistoryMyHero(req, res){
                 ]
             },
             limit: parseInt(size),
-            offset: skip
+            offset: skip,
+            include: [{
+                model: MyHero,
+                include: [{
+                    model: Hero
+                }]
+            }]
         })
         res.status(200).json({msg: 'get all history my wallet success', statusCode: 200, data: result});
     }catch(err){
