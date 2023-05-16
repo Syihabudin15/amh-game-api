@@ -324,6 +324,7 @@ export async function BuyFromAdmin(req, res){
     try{
         let hero = await Hero.findOne({where: {id: heroId}});
         let wallet = await Wallet.findOne({where: {mUserId: token.id}});
+        let user = await User.findOne({where: {id: token.id}, include:[{model: Credential, as: 'm_credential'}]});
         let total = parseInt(hero.default_price*parseInt(quantity));
 
         if(hero === null) return res.status(404).json({msg: 'Hero not found', statusCode: 404});
@@ -332,22 +333,20 @@ export async function BuyFromAdmin(req, res){
         if(hero.stock === 0) return res.status(400).json({msg: 'no more Stock', statusCode: 400});
         if(wallet.balance < total) return res.status(400).json({msg: 'Balance not enough', statusCode: 400});
         
-        let newHeros = [];
+        let result = [];
         for(let i = 0; i < quantity; i++){
-            newHeros.push({
-                mUserId: token.id,
-                mHeroId: hero.id
-            });
+            let myHero = await MyHero.create({mUserId: user.id, mHeroId: hero.id},{t});
+            await HeroTransaction.create({receiver: user.m_credential.email, type: 'buy', myHeroId: myHero.id},{t});
+            result.push(myHero);
         };
 
-        let send = await MyHero.bulkCreate(newHeros,{t});
         wallet.balance -= total;
         hero.stock -= parseInt(quantity);
         await hero.save();
         await wallet.save();
         t.commit();
         
-        res.status(201).json({msg: 'Buy Success', statusCode: 201, data: send});
+        res.status(201).json({msg: 'Buy Success', statusCode: 201, data: result});
     }catch(err){
         t.rollback();
         return res.status(500).json({msg: err.message, statusCode: 500});
