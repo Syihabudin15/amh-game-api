@@ -336,7 +336,7 @@ export async function BuyFromAdmin(req, res){
         let result = [];
         for(let i = 0; i < quantity; i++){
             let myHero = await MyHero.create({mUserId: user.id, mHeroId: hero.id},{t});
-            await HeroTransaction.create({receiver: user.m_credential.email, type: 'buy', myHeroId: myHero.id},{t});
+            await HeroTransaction.create({receiver: user.m_credential.email, type: 'buy', mMyHeroId: myHero.id},{t});
             result.push(myHero);
         };
 
