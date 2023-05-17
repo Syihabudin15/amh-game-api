@@ -71,7 +71,7 @@ export async function SearchByName(req, res){
             offset: skip,
             include: [{
                 model: Hero,
-                as: 'm_hero'
+                as: 'm_heros'
             }]
         });
         res.status(200).json({msg: 'search by name success', statusCode: 200, data: result});
