@@ -27,7 +27,8 @@ export async function GetAllCollection(req, res){
             limit: parseInt(size),
             offset: skip,
             include: [{
-                model: Hero
+                model: Hero,
+                as: 'm_heros'
             }]
         });
         res.status(200).json({msg: 'get all Collection success', statusCode: 200, data: result});
@@ -67,7 +68,11 @@ export async function SearchByName(req, res){
                 [Op.like]: `%${name}%`
             }},
             limit: parseInt(size),
-            offset: skip
+            offset: skip,
+            include: [{
+                model: Hero,
+                as: 'm_hero'
+            }]
         });
         res.status(200).json({msg: 'search by name success', statusCode: 200, data: result});
     }catch(err){
