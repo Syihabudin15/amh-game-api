@@ -7,6 +7,9 @@ import { DB, Op } from "../Configs/DbConfig.js";
 import HeroTransaction from '../Entities/Transactions/HeroTransaction.js';
 import Collection from "../Entities/Markets/Collection.js";
 import Credential from "../Entities/Users/Credential.js";
+import ProgressEvent from "../Entities/Event/ProgresEvent.js";
+import EventTask from "../Entities/Event/EventTask.js";
+import UserEvent from "../Entities/Event/UserEvent.js";
 
 
 export async function BonusSignUp(user){
@@ -148,6 +151,7 @@ export async function CombineHero(req, res){
 
 export async function PlayGame(req, res){
     let myHeroId = req.params.myHeroId;
+    
     try{
         let myHero = await MyHero.findOne({where: {id: myHeroId}});
         let wallet = await Wallet.findOne({where: {mUserId: myHero.mUserId}});
@@ -158,8 +162,31 @@ export async function PlayGame(req, res){
             myHero.my_point += 1;
             await myHero.save();
         };
+        let tasks = await ProgressEvent.findAll({
+            where: {
+                [Op.and]: [
+                    {"$m_user_event.mUserId$": myHero.id},
+                    {"$m_event_tasks.code_title$": 'play-game'}
+                ]
+            },
+            include: [
+                {model: EventTask, as: 'm_event_tasks'},
+                {model: UserEvent, as: 'm_user_event'}
+            ]
+        });
+        if(tasks !== null){
+            for(let i = 0; i < tasks.length; i++){
+                for(let j = 0; j < tasks.m_event_tasks.length; j++){
+                    if(tasks[i].progress < tasks[i].m_event_tasks[j].total){
+                        tasks[i].progress += 1;
+                    }
+                }
+            }
+        }
+
         wallet.balance += parseInt(hero.power);
         await wallet.save();
+        await tasks.save();
 
         res.status(200).json({msg: 'Balance changed', statusCode: 200, data: {
             my_point: myHero.my_point,
