@@ -15,6 +15,7 @@ import { DepositAwaitingCapture, DepositCaptureFailure, DepositCaptureSuccess, D
         DepositSuccessCallback, WithdrawCallback } from "../Services/HandleCallback.js";
 import { CreateCollection, GetAllCollection, GetAllCollectionHero, SearchByName } from "../Services/CollectionService.js";
 import { GetAllHistoryMyHero } from "../Services/MyHeroService.js";
+import { CreateEvent, GetAllActiveEvent, GetAllEvent, GetMyEvent, GetMyEventById, JoinEvent } from '../Services/EventService.js';
 
 const Routers = Express.Router();
 
@@ -75,6 +76,12 @@ Routers.get('/collection/find', SearchByName);
 Routers.get('/hero-detail/:id', GetHeroById);
 Routers.get('/heroes', GetAllHero);
 
+// Event Router
+Routers.get('/events/active', GetAllActiveEvent);
+Routers.get('/events', GetAllEvent);
+Routers.get('/event', JwtVerifyUser, GetMyEvent);
+Routers.get('/event/:id', JwtVerifyUser, GetMyEventById);
+Routers.post('/event/join/:eventId', JwtVerifyUser, JoinEvent);
 
 // Market Route
 Routers.post('/market/buy', JwtVerifyUser, BuyFromAdmin);
@@ -89,6 +96,7 @@ Routers.get('/marketplace/heroes', GetAllMarketplace);
 // Admin Router
 Routers.post('/admin/create-hero', JwtVerifyAdmin, Upload.single('img'), CreateHero);
 Routers.post('/admin/collection', JwtVerifyAdmin, Upload.single('img'), CreateCollection);
+Routers.post('/admin/event', JwtVerifyAdmin, Upload.single('img'), CreateEvent);
 Routers.post('/admin/sign-up', SignUpAdmin);
 Routers.post('/admin/sign-in', SignIn);
 
