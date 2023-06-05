@@ -160,33 +160,30 @@ export async function PlayGame(req, res){
         if(hero === null || wallet === null || myHero === null) return res.status(404).json({msg: 'invalid data. user_id, my_hero_id', statusCode: 404});
         if(myHero.my_point < hero.max_point){
             myHero.my_point += 1;
-            await myHero.save();
         };
         let tasks = await ProgressEvent.findAll({
             where: {
                 [Op.and]: [
-                    {"$m_user_event.mUserId$": myHero.id},
-                    {"$m_event_tasks.code_title$": 'play-game'}
+                    {"$m_user_event.mUserId$": myHero.mUserId},
+                    {"$m_event_task.code_title$": 'play-game'}
                 ]
             },
             include: [
-                {model: EventTask, as: 'm_event_tasks'},
-                {model: UserEvent, as: 'm_user_event'}
+                {model: EventTask},
+                {model: UserEvent}
             ]
         });
         if(tasks !== null){
             for(let i = 0; i < tasks.length; i++){
-                for(let j = 0; j < tasks.m_event_tasks.length; j++){
-                    if(tasks[i].progress < tasks[i].m_event_tasks[j].total){
-                        tasks[i].progress += 1;
-                    }
+                if(tasks[i].progress < tasks[i].m_event_task.total){
+                    await ProgressEvent.update({progress: tasks[i].progress+1}, {where: {id: tasks[i].id}});
                 }
             }
         }
 
         wallet.balance += parseInt(hero.power);
         await wallet.save();
-        await tasks.save();
+        await myHero.save();
 
         res.status(200).json({msg: 'Balance changed', statusCode: 200, data: {
             my_point: myHero.my_point,

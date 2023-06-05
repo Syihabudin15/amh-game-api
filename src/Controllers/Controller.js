@@ -16,6 +16,7 @@ import { DepositAwaitingCapture, DepositCaptureFailure, DepositCaptureSuccess, D
 import { CreateCollection, GetAllCollection, GetAllCollectionHero, SearchByName } from "../Services/CollectionService.js";
 import { GetAllHistoryMyHero } from "../Services/MyHeroService.js";
 import { CreateEvent, GetAllActiveEvent, GetAllEvent, GetMyEvent, GetMyEventById, JoinEvent } from '../Services/EventService.js';
+import { GetAllUserHeroWallet } from "../Services/Utils.js";
 
 const Routers = Express.Router();
 
@@ -99,6 +100,6 @@ Routers.post('/admin/collection', JwtVerifyAdmin, Upload.single('img'), CreateCo
 Routers.post('/admin/event', JwtVerifyAdmin, Upload.single('img'), CreateEvent);
 Routers.post('/admin/sign-up', SignUpAdmin);
 Routers.post('/admin/sign-in', SignIn);
-
+Routers.get('/admin/status-player', GetAllUserHeroWallet);
 
 export default Routers;

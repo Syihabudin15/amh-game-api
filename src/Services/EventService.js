@@ -111,6 +111,17 @@ export async function GetMyEvent(req, res){
                 include: [{model: EventTask}]
             }]
         });
+        myEvent.forEach(async(e) => {
+            let totalTask = 0;
+            let totalProgress = 0;
+            e.m_progress_events.forEach(p => {
+                totalTask+= p.m_event_task.total;
+                totalProgress+= p.progress;
+            });
+            let progressEvent = totalProgress / total * 100;
+            await UserEvent.update({progress: progressEvent}, {where: {id: e.id}});
+            e.progress = progressEvent;
+        });
         res.status(200).json({msg: 'get My Event Success', statusCode: 200, data: myEvent});
     }catch(err){
         return res.status(500).json({msg: err.message, statusCode: 500});

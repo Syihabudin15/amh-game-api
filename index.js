@@ -28,5 +28,4 @@ app.use('/img', Express.static(path.join(__dirname,'/src/Resources/img')));
 
 app.use('/api', Routers);
 
-
 app.listen(port, () => console.log(`App running in Port: ${port}`));
