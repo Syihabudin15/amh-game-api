@@ -20,7 +20,7 @@ export async function SignUpUser(req, res){
         let saveWallet = await CreateWallet({no_wallet: `1138${saveUser.phone}`, mUserId: saveUser.id});
 
         await BonusSignUp(saveUser.id);
-        t.commit();
+        await t.commit();
         res.status(201).json({msg: 'User created', statusCode: 201, data: {id: saveCred.id, email: email, phone: saveUser.phone, role: saveCred.role}});
     }catch(err){
         t.rollback();

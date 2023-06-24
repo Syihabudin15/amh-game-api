@@ -31,7 +31,7 @@ export async function DepositSuccessCallback(req, res){
         wallet.balance += result.amount;
         await wallet.save();
 
-        t.commit();
+        await t.commit();
         res.status(201).json({msg: "Deposit Success", statusCode: 201, data: result});
     }catch(err){
         t.rollback();
@@ -126,7 +126,7 @@ export async function DepositCaptureSuccess(req, res){
         </div>
         `);
 
-        t.commit();
+        await t.commit();
         res.status(200).json({msg: 'Deposit Confirmed', statusCode: 200, data: trans});
     }catch(err){
         t.rollback();

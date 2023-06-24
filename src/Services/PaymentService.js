@@ -39,8 +39,8 @@ export async function DepositViaEwallet(req, res){
                     ewallet: {
                         channel_code: codeBank,
                         channel_properties: {
-                            success_return_url: `https://amh-coin.netlify.app`,
-                            failure_return_url: 'https://amh-coin.netlify.app',
+                            success_return_url: `https://amh-game.vercel.app/user/my-wallet`,
+                            failure_return_url: 'https://amh-game.vercel.app/user/my-wallet',
                             mobile_phone: user.phone
                         }
                     },
