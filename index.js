@@ -24,7 +24,7 @@ app.use(cors(corsOrigin));
 app.use(bodyParser.json());
 app.use(Express.json());
 
-app.use('/img', Express.static(path.join(__dirname,'/src/tmp/Resources/img')));
+app.use('/img', Express.static(path.join(__dirname,'/src/Resources/img')));
 
 app.use('/api', Routers);
 
