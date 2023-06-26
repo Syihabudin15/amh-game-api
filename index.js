@@ -5,7 +5,7 @@ import {} from "dotenv/config";
 import Routers from './src/Controllers/Controller.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import fileUpload from 'express-fileupload';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +20,7 @@ const corsOrigin ={
 const app = Express();
 const port = process.env.PORT || 3000;
 
+app.use(fileUpload());
 app.use(cors(corsOrigin));
 app.use(bodyParser.json());
 app.use(Express.json());

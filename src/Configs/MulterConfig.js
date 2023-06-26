@@ -4,7 +4,7 @@ const random = Date.now().toString();
 
 const storageFile = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "src/Resources/img")
+        cb(null, "Resources/img")
     },
     filename: (req,file,cb) => {
         cb(null, `${random}-${file.originalname}`);
