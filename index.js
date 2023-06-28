@@ -12,16 +12,14 @@ const __dirname = path.dirname(__filename);
 const base = process.env.BASE || 'http://localhost:3000';
 
 const corsOrigin ={
-    origin: base, //or whatever port your frontend is using
-    credentials:true,            
-    optionSuccessStatus:200
-}
+    origin: base || '*', //or whatever port your frontend is using
+};
 
 const app = Express();
 const port = process.env.PORT || 3000;
 
-app.use(fileUpload());
 app.use(cors(corsOrigin));
+app.use(fileUpload());
 app.use(bodyParser.json());
 app.use(Express.json());
 
