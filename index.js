@@ -12,7 +12,9 @@ const __dirname = path.dirname(__filename);
 const base = process.env.BASE || 'http://localhost:3000';
 
 const corsOrigin ={
-    origin: base || '*', //or whatever port your frontend is using
+    origin: '*', //or whatever port your frontend is using
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Request-Method': 'POST, GET, PUT, PATCH, DELETE'
 };
 
 const app = Express();
