@@ -10,7 +10,12 @@ const dbPort = process.env.DB_PORT;
 const DB = new Sequelize(dbName, dbUser, dbPass, {
     host: dbHost,
     port: dbPort,
-    dialect: 'mysql'
+    dialect: 'mysql',
+    dialectOptions: {
+    ssl: {
+      rejectUnauthorized: true
+    }
+    }
 });
 
 export { DB, DataTypes, Op };
