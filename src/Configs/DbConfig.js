@@ -7,6 +7,10 @@ const dbUser = process.env.DB_USER;
 const dbPass = process.env.DB_PASSWORD;
 const dbPort = process.env.DB_PORT;
 
-const DB = new Sequelize('mysql://1h5uwfdhx8xfas0cqpml:pscale_pw_yulF3dXjcAW0eanjqwO2Ip0TtLr8m8wh0FQTV61pT2R@gcp.connect.psdb.cloud/amh-game?ssl={"rejectUnauthorized":true}');
+const DB = new Sequelize(dbName, dbUser, dbPass, {
+    host: dbHost,
+    port: dbPort,
+    dialect: 'mysql'
+});
 
 export { DB, DataTypes, Op };
